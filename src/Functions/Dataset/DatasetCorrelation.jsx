@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-// import * as stats from "simple-statistics";
 import ReactApexChart from "react-apexcharts";
 import { AiOutlineInfoCircle } from "react-icons/ai";
+import { useSelector } from "react-redux";
 import * as Stat from "statistics.js";
 import AgGridComponent from "../../Components/AgGridComponent/AgGridComponent";
 import { fetchDataFromIndexedDB } from "../../util/indexDB";
@@ -53,16 +52,10 @@ function DatasetCorrelation() {
               [column2]: "metric",
             };
 
-            // console.log({column1, column2})
-
             const temp = new Stat(tempData, bodyVars);
             // Calculate the correlation coefficient using simple-statistics correlation function
-            // const correlationCoefficient = stats
-            //   .sampleCorrelation(column1Data, column2Data)
-            //   .toFixed(3);
             const l = Object.keys(bodyVars);
 
-            // console.log(l[0])
             if (relationMethod === "spearman") {
               const cc = temp.spearmansRho(
                 l[0],

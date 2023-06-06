@@ -1,5 +1,4 @@
 import { AgGridReact } from "ag-grid-react";
-import React from "react";
 
 function AgGridComponent({ rowData, columnDefs }) {
   return (
