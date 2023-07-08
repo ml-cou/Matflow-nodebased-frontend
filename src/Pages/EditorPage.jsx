@@ -84,10 +84,10 @@ function EditorPage() {
   }
 
   return (
-    <div className=" flex flex-col md:flex-row flex-1 h-screen bg-p1">
+    <div className=" flex flex-col md:flex-row flex-1 h-screen bg-slate-200">
       <ReactFlowProvider>
       <Sidebar />
-        <div className="reactflow-wrapper h-screen md:h-[unset] flex-grow" ref={reactFlowWrapper}>
+        <div className="reactflow-wrapper h-full flex-grow" ref={reactFlowWrapper}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
