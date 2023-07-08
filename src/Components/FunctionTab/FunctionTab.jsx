@@ -46,13 +46,103 @@ const functionTreeData = [
     key: "1",
     label: "EDA",
     icon: <SlMagnifier size={"20"} />,
-    children: [],
+    children: [
+      {
+        key: "1-0",
+        label: "Bar Plot",
+      },
+      {
+        key: "1-1",
+        label: "Pie Plot",
+      },
+      {
+        key: "1-2",
+        label: "Count Plot",
+      },
+      {
+        key: "1-3",
+        label: "Histogram",
+      },
+      {
+        key: "1-4",
+        label: "Box Plot",
+      },
+      {
+        key: "1-5",
+        label: "Violin Plot",
+      },
+      {
+        key: "1-6",
+        label: "Scatter Plot",
+      },
+      {
+        key: "1-7",
+        label: "Reg Plot",
+      },
+      {
+        key: "1-8",
+        label: "Line Plot",
+      },
+      {
+        key: "1-9",
+        label: "Custom Plot",
+      },
+    ],
   },
   {
     key: "2",
     label: "Feature Engineering",
     icon: <RxGear size={"20"} />,
-    children: [],
+    children: [
+      {
+        key: "2-0",
+        label: "Add/Modify",
+      },
+      {
+        key: "2-1",
+        label: "Change Dtype",
+      },
+      {
+        key: "2-2",
+        label: "Alter Field Name",
+      },
+      {
+        key: "2-3",
+        label: "Imputation",
+      },
+      {
+        key: "2-4",
+        label: "Encoding",
+      },
+      {
+        key: "2-5",
+        label: "Scaling",
+      },
+      {
+        key: "2-6",
+        label: "Drop Column",
+      },
+      {
+        key: "2-7",
+        label: "Drop Rows",
+      },
+      {
+        key: "2-8",
+        label: "Merge Dataset",
+      },
+      {
+        key: "2-9",
+        label: "Append Dataset",
+      },
+      {
+        key: "2-10",
+        label: "Feature Selection",
+      },
+      {
+        key: "2-11",
+        label: "Cluster",
+      },
+    ],
   },
   {
     key: "3",
@@ -70,7 +160,28 @@ const functionTreeData = [
     key: "5",
     label: "Model Building",
     icon: <TbBrain size={"20"} />,
-    children: [],
+    children: [
+      {
+        key: "5-0",
+        label: "Split Dataset",
+      },
+      {
+        key: "5-1",
+        label: "Build Model",
+      },
+      {
+        key: "5-2",
+        label: "Model Evaluation",
+      },
+      {
+        key: "5-3",
+        label: "Model Prediction",
+      },
+      {
+        key: "5-4",
+        label: "Models",
+      },
+    ],
   },
   {
     key: "6",
@@ -103,7 +214,7 @@ function FunctionTab() {
   }, [dispatch]);
 
   return (
-    <div className=" mt-4">
+    <div className="overflow-y-auto mt-4">
       {activeCsvFile ? (
         <TreeView treeData={functionTreeData} setActiveLeaf={setActiveLeaf} />
       ) : (
