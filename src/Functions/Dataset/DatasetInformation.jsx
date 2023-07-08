@@ -4,24 +4,24 @@ import { useSelector } from "react-redux";
 import AgGridComponent from "../../Components/AgGridComponent/AgGridComponent";
 import { fetchDataFromIndexedDB } from "../../util/indexDB";
 
-const DatasetInformation = () => {
-  const [rowData, setRowData] = useState([]);
+const DatasetInformation = ({csvData}) => {
+  // const [rowData, setRowData] = useState([]);
   const activeCsvFile = useSelector((state) => state.uploadedFile.activeFile);
 
-  useEffect(() => {
-    if (activeCsvFile && activeCsvFile.name) {
-      const fetchCSVData = async () => {
-        const res = await fetchDataFromIndexedDB(activeCsvFile.name);
-        setRowData(res);
-      };
-      fetchCSVData();
-    }
-  }, [activeCsvFile]);
+  // useEffect(() => {
+  //   if (activeCsvFile && activeCsvFile.name) {
+  //     const fetchCSVData = async () => {
+  //       const res = await fetchDataFromIndexedDB(activeCsvFile.name);
+  //       setRowData(res);
+  //     };
+  //     fetchCSVData();
+  //   }
+  // }, [activeCsvFile]);
 
   return (
     <div>
       <h1 className="text-3xl font-bold my-4">Dataset Information</h1>
-      {rowData.length > 0 && <MyAgGridComponent rowData={rowData} />}
+      {csvData.length > 0 && <MyAgGridComponent rowData={csvData} />}
     </div>
   );
 };
@@ -58,7 +58,7 @@ const MyAgGridComponent = ({ rowData }) => {
       if (column !== "id") {
         rowData.forEach((row) => {
           const value = row[column];
-          if (value) {
+          if (value !== undefined && value !== null) {
             uniqueValues.add(value);
             nonNullCount++;
           }

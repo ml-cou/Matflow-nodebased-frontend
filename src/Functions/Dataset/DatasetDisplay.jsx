@@ -1,24 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import AgGridComponent from "../../Components/AgGridComponent/AgGridComponent";
-import { fetchDataFromIndexedDB } from "../../util/indexDB";
 
-const DatasetDisplay = () => {
+let id = 1;
+
+const DatasetDisplay = ({ csvData }) => {
   const [value] = useState("All");
-  const [csvData, setCsvData] = useState([]);
+  // const [csvData, setCsvData] = useState([]);
   const [filterText] = useState("");
   const activeCsvFile = useSelector((state) => state.uploadedFile.activeFile);
+  const render = useSelector((state) => state.uploadedFile.rerender);
 
   // Fetch data from IndexedDB
-  useEffect(() => {
-    if (activeCsvFile && activeCsvFile.name) {
-      const getData = async () => {
-        const res = await fetchDataFromIndexedDB(activeCsvFile.name);
-        setCsvData(res);
-      };
-      getData();
-    }
-  }, [activeCsvFile]);
+  // useEffect(() => {
+  //   if (activeCsvFile && activeCsvFile.name) {
+  //     const getData = async () => {
+  //       const res = await fetchDataFromIndexedDB(activeCsvFile.name);
+  //       setCsvData(res);
+  //     };
+  //     getData();
+  //   }
+  // }, [activeCsvFile, render]);
 
   // Define the row data based on the selected view option
   let rowData;
@@ -44,22 +46,19 @@ const DatasetDisplay = () => {
       ? Object.keys(csvData[0]).map((key) => ({
           headerName: key,
           field: key,
-          valueFormatter: ({ value }) => (value !== null ? value : "N/A"),
-          filter: true, // Enable filtering for the column
-          filterParams: {
-            suppressAndOrCondition: true, // Optional: Suppress 'and'/'or' filter conditions
-            newRowsAction: "keep", // Optional: Preserve filter when new rows are loaded
+          valueGetter: (params) => {
+            return params.data[key];
           },
-          sortable: true, // Enable sorting for the column
-          flex: 1,
         }))
       : [];
+
+  // console.log(columnDefs);
 
   return (
     <>
       <h1 className="text-3xl mt-4 font-bold">Display Dataset</h1>
 
-      <div className="mt-4">
+      <div className="mt-4 w-full">
         {rowData.length > 0 && (
           <div
             className="ag-theme-alpine"
