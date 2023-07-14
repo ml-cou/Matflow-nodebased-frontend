@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import DashBoardLeft from "../Components/DashBoardLeft/DashBoardLeft";
-import DashBoardRight from "../Components/DashBoardRight/DashBoardRight";
-import DashBoardTop from "../Components/DashBoardTop/DashBoardTop";
+
+import DashBoardLeft from "../FunctionBased/Components/DashBoardLeft/DashBoardLeft";
+import DashBoardRight from "../FunctionBased/Components/DashBoardRight/DashBoardRight";
+import DashBoardTop from "../FunctionBased/Components/DashBoardTop/DashBoardTop";
 import { setActiveFunction } from "../Slices/SideBarSlice";
 
 export default function Dashboard() {
