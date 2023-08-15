@@ -52,6 +52,9 @@ function Models({ csvData }) {
     setRender(!render);
   };
 
+  const handleDownload = async (datasetName, modelName) => {
+    console.log(allModels[datasetName][modelName]);
+  };
   if (
     !allModels ||
     allModels.length === 0 ||
@@ -80,7 +83,10 @@ function Models({ csvData }) {
                 {Object.keys(allModels[val]).map((d, index) => (
                   <div key={index} className="grid grid-cols-3">
                     <h1 className="tracking-wide">{d}</h1>
-                    <button className="border w-32 justify-self-center  flex items-center justify-center py-2 bg-green-500 rounded text-white font-medium tracking-wider text-sm">
+                    <button
+                      className="border w-32 justify-self-center  flex items-center justify-center py-2 bg-green-500 rounded text-white font-medium tracking-wider text-sm"
+                      onClick={() => handleDownload(val, d)}
+                    >
                       Download{" "}
                       <span className="ml-2">
                         {" "}

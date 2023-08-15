@@ -1,14 +1,20 @@
 import { Input } from "@nextui-org/react";
 import React, { useEffect, useRef, useState } from "react";
 
-function SingleDropDown({ columnNames, onValueChange, initValue, disabled=false }) {
+function SingleDropDown({
+  columnNames,
+  onValueChange,
+  initValue,
+  disabled = false,
+}) {
+  // console.log(columnNames);
   const [filter1, setFilter1] = useState("");
   const [isOpen1, setIsOpen1] = useState(false);
   const dropdownRef1 = useRef(null);
 
   useEffect(() => {
-    if(initValue) setFilter1(initValue)
-  }, [initValue])
+    if (initValue) setFilter1(initValue);
+  }, [initValue]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -29,13 +35,15 @@ function SingleDropDown({ columnNames, onValueChange, initValue, disabled=false 
 
   const handleInputChange1 = (event) => {
     const newFilter = event.target.value;
+    // console.log(newFilter)
     setFilter1(newFilter);
     setIsOpen1(true);
   };
 
-  const filteredItems1 = columnNames.filter((item) =>
-    item.toLowerCase().includes(filter1.toLowerCase())
-  );
+  const filteredItems1 = columnNames.filter((item) => {
+    if (typeof filter1 !== "string") return false;
+    return item.toLowerCase().includes(filter1.toLowerCase());
+  });
 
   return (
     <div ref={dropdownRef1} className="relative mt-2">

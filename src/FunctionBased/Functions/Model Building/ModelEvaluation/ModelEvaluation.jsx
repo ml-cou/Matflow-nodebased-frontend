@@ -156,7 +156,7 @@ function ModelEvaluation() {
           <p>Display Type</p>
           <SingleDropDown
             columnNames={["Graph", "Table"]}
-            initValue={"Table"}
+            // initValue={"Graph"}
             onValueChange={(e) => {
               setDisplayType(e);
               setColumnDefs();

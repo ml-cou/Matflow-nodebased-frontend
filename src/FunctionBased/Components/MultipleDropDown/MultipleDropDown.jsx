@@ -47,11 +47,12 @@ const MultipleDropDown = ({
 
   useEffect(() => {
     const handleWindowClick = (event) => {
+      // console.log('first')
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setFilteredItems([]);
       }
     };
-
+     
     window.addEventListener("click", handleWindowClick);
 
     return () => {

@@ -12,7 +12,6 @@ import SingleDropDown from "../../Components/SingleDropDown/SingleDropDown";
 function TimeSeriesAnalysis({ csvData }) {
   const allColumnNames = Object.keys(csvData[0]);
   const [dataTimeWarning, setDateTimeWarning] = useState(false);
-  const [extend_time, setExtendTime] = useState(0.0);
   const [target_variable, setTargetVariable] = useState("");
   const [timeSeriesData, setTimeSeriesData] = useState();
   const [newTime, setNewTime] = useState();

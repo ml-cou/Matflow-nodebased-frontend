@@ -156,7 +156,11 @@ function BuildModel({ csvData }) {
         }),
       });
       const data = await res.json();
+      console.log(data);
 
+      
+
+      // return;
       setNicherData(data.metrics);
 
       let allModels = await fetchDataFromIndexedDB("models");
@@ -171,6 +175,7 @@ function BuildModel({ csvData }) {
             y_pred: JSON.parse(data.y_pred),
             type,
             regressor,
+            model_deploy: data.model_deploy,
           },
         };
       } else {
@@ -182,6 +187,7 @@ function BuildModel({ csvData }) {
               y_pred: JSON.parse(data.y_pred),
               type,
               regressor,
+              model_deploy: data.model_deploy,
             },
           },
         });
