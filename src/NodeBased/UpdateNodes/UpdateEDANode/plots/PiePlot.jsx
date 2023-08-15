@@ -1,23 +1,56 @@
 import { Checkbox, Input } from "@nextui-org/react";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import SingleDropDown from "../../../../FunctionBased/Components/SingleDropDown/SingleDropDown";
 
-function PiePlot() {
+function PiePlot({ csvData, setPlotOption }) {
+  const stringColumn = Object.keys(csvData[0]).filter(
+    (val) => typeof csvData[0][val] === "string"
+  );
+  const [activeStringColumn, setActiveStringColumn] = useState("");
   const [showTitle, setShowTitle] = useState(false);
-  const [title, setTitle] = useState();
   const [titleValue, setTitleValue] = useState("");
+  const [title, setTitle] = useState("");
   const [label, setLabel] = useState(true);
   const [percentage, setPercentage] = useState(true);
-  const gapRef = useRef();
   const [gap, setGap] = useState(0);
+  const plotOption = useSelector((state) => state.EDA.plotOption);
+
+  useEffect(() => {
+    if (plotOption && Object.keys(plotOption).length > 0) {
+      setActiveStringColumn(plotOption.cat);
+      setTitleValue(plotOption.title);
+      setLabel(plotOption.label);
+      setPercentage(plotOption.percentage);
+      setGap(plotOption.gap);
+    } else {
+      setActiveStringColumn("");
+      setTitleValue("");
+      setLabel("");
+      setPercentage(true);
+      setGap(0);
+    }
+  }, [plotOption]);
+
+  useEffect(() => {
+    setPlotOption({
+      cat: activeStringColumn || "-",
+      title,
+      label,
+      percentage,
+      gap,
+    });
+    console.log(gap);
+  }, [activeStringColumn, title, gap, label, percentage]);
 
   return (
     <div className="grid gap-4 mt-4">
       <div className="w-full">
         <p className=" tracking-wide">Categorical Variable</p>
         <SingleDropDown
-          columnNames={["stringColumn"]}
-          //   onValueChange={setActiveStringColumn}
+          columnNames={stringColumn}
+          onValueChange={setActiveStringColumn}
+          initValue={activeStringColumn}
         />
       </div>
       <div className="w-full flex flex-col gap-1">
@@ -25,7 +58,6 @@ function PiePlot() {
           Explode Value
         </label>
         <Input
-          ref={gapRef}
           type="number"
           bordered
           min={0}
@@ -33,12 +65,8 @@ function PiePlot() {
           color="success"
           placeholder="Expected value (0 - 0.1)."
           step={"0.01"}
-          helperText="Press Enter to apply"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              setGap(gapRef.current.value);
-            }
-          }}
+          value={gap}
+          onChange={(e) => setGap(parseFloat(e.target.value))}
         />
       </div>
 

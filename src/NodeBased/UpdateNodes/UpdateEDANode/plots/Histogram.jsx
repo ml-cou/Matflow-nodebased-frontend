@@ -1,64 +1,136 @@
 import { Slider, Stack } from "@mui/material";
 import { Checkbox, Input } from "@nextui-org/react";
-import React, { useState } from "react";
-import SingleDropDown from "../../../../FunctionBased/Components/SingleDropDown/SingleDropDown";
+import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import styled from "styled-components";
+import SingleDropDown from "../../../../FunctionBased/Components/SingleDropDown/SingleDropDown";
 
 const AGGREGATE = ["probability", "count", "frequency", "percent", "density"];
 
-function Histogram() {
+function Histogram({ csvData, setPlotOption }) {
+  const stringColumn = Object.keys(csvData[0]).filter(
+    (val) => typeof csvData[0][val] === "string"
+  );
+  const numberColumn = Object.keys(csvData[0]).filter(
+    (val) => typeof csvData[0][val] === "number"
+  );
+  const [activeNumberColumn, setActiveNumberColumn] = useState("");
+  const [activeHueColumn, setActiveHueColumn] = useState("");
+  const [orientation, setOrientation] = useState("Vertical");
   const [showTitle, setShowTitle] = useState(false);
   const [title, setTitle] = useState();
+  const [aggregate, setAggregate] = useState("count");
   const [KDE, setKDE] = useState(false);
   const [legend, setLegend] = useState(false);
   const [showAutoBin, setShowAutoBin] = useState(true);
   const [autoBinValue, setAutoBinValue] = useState(10);
-  const [titleValue, setTitleValue] = useState("");
+  const plotOption = useSelector((state) => state.EDA.plotOption);
+
+  useEffect(() => {
+    if (plotOption && Object.keys(plotOption).length > 0) {
+      setActiveHueColumn(plotOption.hue);
+      setActiveNumberColumn(plotOption.var);
+      setOrientation(plotOption.orient);
+      setTitle(plotOption.title);
+      setAggregate(plotOption.agg);
+      setAutoBinValue(plotOption.autoBin);
+      setKDE(plotOption.kde);
+      setLegend(plotOption.legend);
+      setShowAutoBin(!(plotOption.autoBin > 0));
+    } else {
+      setActiveHueColumn("");
+      setActiveNumberColumn("");
+      setOrientation("Vertical");
+      setTitle("");
+      setAggregate(AGGREGATE[0]);
+      setAutoBinValue(10);
+      setKDE(false);
+      setLegend(false);
+      setShowAutoBin(true);
+    }
+  }, [plotOption]);
+
+  useEffect(() => {
+    setPlotOption({
+      var: activeNumberColumn || "-",
+      hue: activeHueColumn || "-",
+      orient: orientation,
+      title: title || "",
+      agg: aggregate,
+      autoBin: !showAutoBin ? autoBinValue : 0,
+      kde: KDE,
+      legend: legend,
+    });
+  }, [
+    activeNumberColumn,
+    activeHueColumn,
+    orientation,
+    title,
+    autoBinValue,
+    showAutoBin,
+    KDE,
+    legend,
+    aggregate,
+  ]);
 
   return (
     <div className="grid gap-4 mt-4">
       <div className="w-full">
         <p className=" tracking-wide">Variable</p>
         <SingleDropDown
-          columnNames={["numberColumn"]}
-          //   onValueChange={setActiveStringColumn}
+          columnNames={numberColumn}
+          onValueChange={setActiveNumberColumn}
+          initValue={activeNumberColumn}
         />
       </div>
 
       <div className="w-full">
         <p className=" tracking-wide">Hue</p>
         <SingleDropDown
-          //   onValueChange={["setActiveHueColumn"]}
-          columnNames={["stringColumn"]}
+          onValueChange={setActiveHueColumn}
+          columnNames={stringColumn}
+          initValue={activeHueColumn}
         />
       </div>
       <div className="w-full">
         <p className=" tracking-wide">Aggregate Statistics</p>
         <SingleDropDown
-          //   onValueChange={["setActiveHueColumn"]}
+          onValueChange={setAggregate}
           columnNames={AGGREGATE}
-          initValue={AGGREGATE[0]}
+          initValue={aggregate}
         />
       </div>
       <div className="w-full flex flex-col gap-1">
         <p>Orientation</p>
-        <SingleDropDown columnNames={["Vertical", "Horizontal"]} />
+        <SingleDropDown
+          columnNames={["Vertical", "Horizontal"]}
+          initValue={orientation}
+          onValueChange={setOrientation}
+        />
       </div>
       <div className="flex items-center gap-4 mt-4 tracking-wider">
         <Checkbox color="primary" onChange={(e) => setShowTitle(e.valueOf())}>
           Title
         </Checkbox>
         <Checkbox
-          color="success"
+          color="primary"
           isSelected={showAutoBin}
           onChange={(e) => setShowAutoBin(e.valueOf())}
         >
           Auto Bin
         </Checkbox>
-        <Checkbox color="success" onChange={(e) => setKDE(e.valueOf())}>
+        <Checkbox
+          color="primary"
+          isSelected={KDE}
+          onChange={(e) => setKDE(e.valueOf())}
+        >
           KDE
         </Checkbox>
-        <Checkbox color="success" onChange={(e) => setLegend(e.valueOf())}>
+        <Checkbox
+          color="primary"
+          isSelected={legend}
+          onChange={(e) => setLegend(e.valueOf())}
+        >
           Legend
         </Checkbox>
       </div>
@@ -71,7 +143,7 @@ function Histogram() {
               min={1}
               max={35}
               step={1}
-              defaultValue={10}
+              defaultValue={autoBinValue}
               value={autoBinValue}
               onChange={(e) => setAutoBinValue(e.target.value)}
               valueLabelDisplay="on"
@@ -90,12 +162,8 @@ function Histogram() {
             label="Input Title"
             placeholder="Enter your desired title"
             fullWidth
-            value={titleValue}
-            onChange={(e) => setTitleValue(e.target.value)}
-            helperText="Press Enter to apply"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") setTitle(titleValue);
-            }}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
           />
         </div>
       )}
@@ -104,7 +172,7 @@ function Histogram() {
 }
 
 const PrettoSlider = styled(Slider)({
-  color: "#52af77",
+  color: "#0072F5",
   height: 8,
   "& .MuiSlider-track": {
     border: "none",
@@ -129,7 +197,7 @@ const PrettoSlider = styled(Slider)({
     width: 32,
     height: 32,
     borderRadius: "50% 50% 50% 0",
-    backgroundColor: "#52af77",
+    backgroundColor: "#0072F5",
     transformOrigin: "bottom left",
     transform: "translate(50%, -100%) rotate(-45deg) scale(0)",
     "&:before": { display: "none" },

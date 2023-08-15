@@ -1,16 +1,11 @@
-import InsertChartOutlinedIcon from "@mui/icons-material/InsertChartOutlined";
 import React, { useEffect, useState } from "react";
+import { AiOutlineLineChart } from "react-icons/ai";
 import { useDispatch } from "react-redux";
 import { Handle, Position, useReactFlow } from "reactflow";
-import {
-  setNodeIdRedux,
-  setPlotOptionRedux,
-  setPlotRedux,
-} from "../../../Slices/NodeBasedSlices/EDASlice";
-import { handlePlotOptions } from "../../../util/NodeFunctions";
-import UpdateEDANode from "../../UpdateNodes/UpdateEDANode/UpdateEDANode";
+import UpdateTimeSeriesNode from "../../UpdateNodes/UpdateTimeSeriesNpde/UpdateTimeSeriesNode";
+import { handleTimeSeriesAnalysis } from "../../../util/NodeFunctions";
 
-function EDANode({ id, data }) {
+function TimeSeriesNode({ id, data }) {
   const [visible, setVisible] = useState(false);
   const dispatch = useDispatch();
   const rflow = useReactFlow();
@@ -25,18 +20,10 @@ function EDANode({ id, data }) {
             rflow.getNode(edge.target).type === "output_graph"
         );
       temp.forEach(async (val) => {
-        await handlePlotOptions(rflow, val);
+        await handleTimeSeriesAnalysis(rflow, val);
       });
     })();
-    if (data) {
-      dispatch(setPlotOptionRedux(data.plotOption));
-      dispatch(setPlotRedux(data.plot));
-    }
-  }, [data, dispatch]);
-
-  useEffect(() => {
-    dispatch(setNodeIdRedux(id));
-  }, [dispatch, visible]);
+  }, [data]);
 
   return (
     <>
@@ -48,21 +35,23 @@ function EDANode({ id, data }) {
       >
         <Handle type="source" position={Position.Right}></Handle>
         <Handle type="target" position={Position.Left}></Handle>
-        <div className="grid place-items-center p-2 py-3 min-w-[80px]">
-          <InsertChartOutlinedIcon color="action" />
-          <span>EDA</span>
+        <div className="grid place-items-center p-3 px-4 min-w-[80px]">
+          <AiOutlineLineChart className="text-[rgba(0,0,0,0.54)]" size={"30"} />
+          <span className="mt-1 text-center text-sm">
+            Time Series <br /> Analysis
+          </span>
         </div>
       </div>
       {data && data.table && (
-        <UpdateEDANode
+        <UpdateTimeSeriesNode
           visible={visible}
           setVisible={setVisible}
           csvData={data.table}
-          id={id}
+          nodeId={id}
         />
       )}
     </>
   );
 }
 
-export default EDANode;
+export default TimeSeriesNode;

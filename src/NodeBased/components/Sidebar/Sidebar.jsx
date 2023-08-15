@@ -4,7 +4,11 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import InsertChartOutlinedIcon from "@mui/icons-material/InsertChartOutlined";
 import SettingsSuggestOutlinedIcon from "@mui/icons-material/SettingsSuggestOutlined";
 import { Collapse } from "@nextui-org/react";
-import { AiOutlineGroup, AiOutlineLineChart } from "react-icons/ai";
+import {
+  AiOutlineGroup,
+  AiOutlineLineChart,
+  AiOutlineMergeCells,
+} from "react-icons/ai";
 import { BiStats } from "react-icons/bi";
 import { BsTable } from "react-icons/bs";
 import {
@@ -172,6 +176,14 @@ const FUNCTION_NODES = [
     key: "8",
     label: "ReverseML",
     icon: <HiOutlinePuzzle className="text-[rgba(0,0,0,0.54)]" size={"25"} />,
+    children: [],
+  },
+  {
+    key: "9",
+    label: "Merge Dataset",
+    icon: (
+      <AiOutlineMergeCells className="text-[rgba(0,0,0,0.54)]" size={"25"} />
+    ),
     children: [],
   },
 ];
