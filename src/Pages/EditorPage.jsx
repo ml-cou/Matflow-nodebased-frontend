@@ -15,16 +15,29 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import ChartNode from "../NodeBased/CustomNodes/ChartNode/ChartNode";
 import EDANode from "../NodeBased/CustomNodes/EDANode/EDANode";
+import MergeDatasetNode from "../NodeBased/CustomNodes/MergeDatasetNode/MergeDatasetNode";
+import ReverseMLNode from "../NodeBased/CustomNodes/ReverseMLNode/ReverseMLNode";
 import TableNode from "../NodeBased/CustomNodes/TableNode/TableNode";
+import TimeSeriesNode from "../NodeBased/CustomNodes/TimeSeiresNode/TimeSeriesNode";
 import UploadFile from "../NodeBased/CustomNodes/UploadFile/UploadFile";
 import Sidebar from "../NodeBased/components/Sidebar/Sidebar";
-import { handleOutputTable, handlePlotOptions } from "../util/NodeFunctions";
+import {
+  handleFileForMergeDataset,
+  handleOutputTable,
+  handlePlotOptions,
+  handleReverseML,
+  handleTimeSeriesAnalysis,
+  isItTimeSeriesFile,
+} from "../util/NodeFunctions";
 
 const nodeTypes = {
   upload: UploadFile,
   output_graph: ChartNode,
   output_table: TableNode,
   EDA: EDANode,
+  ReverseML: ReverseMLNode,
+  "Time Series Analysis": TimeSeriesNode,
+  "Merge Dataset": MergeDatasetNode,
 };
 
 const initialNodes = [
@@ -122,10 +135,13 @@ function EditorPage() {
     async (params) => {
       const typeSource = rflow.getNode(params.source).type;
       const typeTarget = rflow.getNode(params.target).type;
+      let ok = true;
       if (
         typeTarget === "output_table" ||
         typeTarget === "EDA" ||
-        typeTarget === "output_graph"
+        typeTarget === "output_graph" ||
+        typeTarget === "Time Series Analysis" ||
+        typeTarget === "ReverseML"
       ) {
         const temp = edgeList.filter((val) => val.target === params.target);
         if (temp && temp.length > 0) {
@@ -143,22 +159,43 @@ function EditorPage() {
         }
       }
 
-      if (typeSource === "upload" && typeTarget === "output_table") {
-        const ok = await handleOutputTable(rflow, params);
-        if (!ok) return;
+      if (
+        typeSource === "upload" &&
+        (typeTarget === "output_table" ||
+          typeTarget === "EDA" ||
+          typeTarget === "ReverseML")
+      ) {
+        ok = await handleOutputTable(rflow, params);
       }
 
-      if (typeSource === "upload" && typeTarget === "EDA") {
-        const ok = await handleOutputTable(rflow, params);
-        if (!ok) return;
+      if (
+        (typeSource === "EDA" || typeSource === "upload") &&
+        typeTarget === "output_graph"
+      ) {
+        // console.log(rflow);
+        ok = await handlePlotOptions(rflow, params);
       }
 
-      if (typeSource === "EDA" && typeTarget === "output_graph") {
-        console.log(rflow);
-        const ok = await handlePlotOptions(rflow, params);
-        if (!ok) return;
+      if (typeSource === "ReverseML" && typeTarget === "output_table") {
+        ok = await handleReverseML(rflow, params);
       }
 
+      if (typeSource === "upload" && typeTarget === "Time Series Analysis") {
+        ok = await isItTimeSeriesFile(rflow, params);
+      }
+
+      if (
+        typeSource === "Time Series Analysis" &&
+        typeTarget === "output_graph"
+      ) {
+        ok = await handleTimeSeriesAnalysis(rflow, params);
+      }
+
+      if (typeSource === "upload" && typeTarget === "Merge Dataset") {
+        ok = await handleFileForMergeDataset(rflow, params)
+      }
+
+      if (!ok) return;
       setEdges((eds) => {
         const temp = {
           ...params,
