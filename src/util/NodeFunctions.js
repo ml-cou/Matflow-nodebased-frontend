@@ -218,3 +218,73 @@ export const handleFileForMergeDataset = async (rflow, params) => {
     return false;
   }
 };
+
+export const handleMergeDataset = async (rflow, params) => {
+  try {
+    const { merge } = rflow.getNode(params.source).data;
+
+    if (!merge) throw new Error("Check Merge Dataset Node.");
+
+    const res = await fetch("http://127.0.0.1:8000/api/merge_dataset/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        how: merge.how,
+        left_dataframe: merge.left_dataframe,
+        right_dataframe: merge.right_dataframe,
+        file: merge.table1,
+        file2: merge.table2,
+      }),
+    });
+
+    let data = await res.json();
+    data = JSON.parse(data);
+
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target) return { ...val, data: { table: data } };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
+
+export const handleAddModify = async (rflow, params) => {
+  try {
+    let { addModify } = rflow.getNode(params.source).data;
+    console.log(addModify);
+    if (!addModify) throw new Error("Check Add/Modify Node.");
+    if (addModify.option === "Add") {
+      addModify.select_column = addModify.column_name;
+    }
+    const res = await fetch("http://127.0.0.1:8000/api/feature_creation/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(addModify),
+    });
+
+    let data = await res.json();
+    console.log(data)
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return {
+          ...val,
+          data: { table: data, file_name: addModify.dataset_name },
+        };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
