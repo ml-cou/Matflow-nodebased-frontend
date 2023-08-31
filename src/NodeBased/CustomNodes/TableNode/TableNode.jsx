@@ -42,7 +42,7 @@ function TableNode({ id, data }) {
         {/* <Handle type="source" position={Position.Right}></Handle> */}
         <Handle type="target" position={Position.Left}></Handle>
         <div className="grid place-items-center p-2 py-3 min-w-[80px]">
-          <BsTable className="text-[rgba(0,0,0,0.54)]" size={20} />
+          <BsTable size={20} />
           <span>Table</span>
         </div>
       </div>

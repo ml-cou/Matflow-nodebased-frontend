@@ -15,8 +15,9 @@ function UpdateMergeDatasetNode({
   table1,
   table2,
 }) {
-  const leftDataframe = Object.keys(table1[0]);
-  const rightDataframe = Object.keys(table2[0]);
+  // console.log({table1, table2})
+  const leftDataframe = table1 ? Object.keys(table1[0]) : [];
+  const rightDataframe = table2 ? Object.keys(table2[0]) : [];
   const rflow = useReactFlow();
   const nodeDetails = rflow.getNode(nodeId);
   const theme = useTheme();

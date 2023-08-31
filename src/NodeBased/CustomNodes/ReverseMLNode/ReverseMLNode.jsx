@@ -35,7 +35,7 @@ function ReverseMLNode({ id, data }) {
         <Handle type="source" position={Position.Right}></Handle>
         <Handle type="target" position={Position.Left}></Handle>
         <div className="grid place-items-center gap-1 p-2 py-3 min-w-[80px]">
-          <HiOutlinePuzzle className="text-[rgba(0,0,0,0.54)]" size={"25"} />
+          <HiOutlinePuzzle size={"25"} />
           <span>ReverseML</span>
         </div>
       </div>

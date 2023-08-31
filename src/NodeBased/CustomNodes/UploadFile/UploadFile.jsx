@@ -74,6 +74,7 @@ function UploadFile({ id, data }) {
       onDrop={handleDrop}
     >
       <Handle type="source" position={Position.Right}></Handle>
+      <Handle type="target" position={Position.Left}></Handle>
       {!data || !data.file_name ? (
         <div className="grid place-items-center p-2">
           <label htmlFor="upload-file" className="text-center">

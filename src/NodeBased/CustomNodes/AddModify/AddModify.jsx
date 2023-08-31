@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { AiOutlineLineChart } from "react-icons/ai";
-import { useDispatch } from "react-redux";
+import { RiFileEditLine } from "react-icons/ri";
 import { Handle, Position, useReactFlow } from "reactflow";
-import UpdateTimeSeriesNode from "../../UpdateNodes/UpdateTimeSeriesNpde/UpdateTimeSeriesNode";
-import { handleTimeSeriesAnalysis } from "../../../util/NodeFunctions";
+import { handleAddModify } from "../../../util/NodeFunctions";
+import UpdateAddModifyNode from "../../UpdateNodes/UpdateAddModifyNode/UpdateAddModifyNode";
 
-function TimeSeriesNode({ id, data }) {
+function AddModify({ id, data }) {
+  // console.log(data);
   const [visible, setVisible] = useState(false);
-  const dispatch = useDispatch();
   const rflow = useReactFlow();
 
   useEffect(() => {
@@ -16,11 +15,10 @@ function TimeSeriesNode({ id, data }) {
         .getEdges()
         .filter(
           (edge) =>
-            edge.source === id &&
-            rflow.getNode(edge.target).type === "output_graph"
+            edge.source === id && rflow.getNode(edge.target).type === "upload"
         );
       temp.forEach(async (val) => {
-        await handleTimeSeriesAnalysis(rflow, val);
+        await handleAddModify(rflow, val);
       });
     })();
   }, [data]);
@@ -35,23 +33,22 @@ function TimeSeriesNode({ id, data }) {
       >
         <Handle type="source" position={Position.Right}></Handle>
         <Handle type="target" position={Position.Left}></Handle>
-        <div className="grid place-items-center p-3 px-4 min-w-[80px]">
-          <AiOutlineLineChart size={"30"} />
-          <span className="mt-1 text-center text-sm">
-            Time Series <br /> Analysis
-          </span>
+
+        <div className="grid place-items-center gap-1 p-2 py-3 min-w-[80px]">
+          <RiFileEditLine size={"25"} />
+          <span>Add/Modify</span>
         </div>
       </div>
       {data && data.table && (
-        <UpdateTimeSeriesNode
+        <UpdateAddModifyNode
           visible={visible}
           setVisible={setVisible}
-          csvData={data.table}
           nodeId={id}
+          csvData={data.table}
         />
       )}
     </>
   );
 }
 
-export default TimeSeriesNode;
+export default AddModify;

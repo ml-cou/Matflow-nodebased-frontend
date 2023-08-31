@@ -21,7 +21,7 @@ function ChartNode({ id, data }) {
         {/* <Handle type="source" position={Position.Right}></Handle> */}
         <Handle type="target" position={Position.Left}></Handle>
         <div className="grid place-items-center p-2 py-3 min-w-[80px]">
-          <AutoGraphOutlinedIcon color="action" />
+          <AutoGraphOutlinedIcon  />
           <span>Graph</span>
         </div>
       </div>

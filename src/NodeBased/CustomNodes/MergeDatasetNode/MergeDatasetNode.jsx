@@ -1,11 +1,29 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AiOutlineMergeCells } from "react-icons/ai";
 import { Handle, Position, useReactFlow } from "reactflow";
+import { handleMergeDataset } from "../../../util/NodeFunctions";
 import UpdateMergeDatasetNode from "../../UpdateNodes/UpdateMergeDatasetNode/UpdateMergeDatasetNode";
 
 function MergeDatasetNode({ id, data }) {
   const [visible, setVisible] = useState(false);
   const rflow = useReactFlow();
+
+  useEffect(() => {
+    (async function () {
+      const temp = rflow
+        .getEdges()
+        .filter(
+          (edge) =>
+            edge.source === id &&
+            rflow.getNode(edge.target).type === "output_table"
+        );
+      temp.forEach(async (val) => {
+        await handleMergeDataset(rflow, val);
+      });
+    })();
+
+    console.log(data);
+  }, [data, rflow]);
 
   return (
     <>
@@ -29,7 +47,7 @@ function MergeDatasetNode({ id, data }) {
           position={Position.Left}
         ></Handle>
         <div className="grid place-items-center gap-1 p-2 py-3 min-w-[80px]">
-          <AiOutlineMergeCells className="text-[rgba(0,0,0,1)]" size={"25"} />
+          <AiOutlineMergeCells  size={"25"} />
           <span>Merge Dataset</span>
         </div>
       </div>
