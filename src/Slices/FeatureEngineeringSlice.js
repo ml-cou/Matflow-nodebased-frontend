@@ -22,7 +22,7 @@ export const FeatureEngineeringSlice = createSlice({
       state.option = payload;
     },
     setColumnName: (state, { payload }) => {
-      state.select_column = payload;
+      state.column_name = payload;
     },
     setMethod: (state, { payload }) => {
       state.method = payload;
@@ -45,9 +45,9 @@ export const FeatureEngineeringSlice = createSlice({
     setSelectColumn: (state, { payload }) => {
       state.select_column = payload;
     },
-    setFeatureSelection: (state, {payload}) => {
-      state.feature_selection = payload
-    }
+    setFeatureSelection: (state, { payload }) => {
+      state.feature_selection = payload;
+    },
   },
 });
 
@@ -62,7 +62,7 @@ export const {
   setDatasetName,
   setFile,
   setSelectColumn,
-  setFeatureSelection
+  setFeatureSelection,
 } = FeatureEngineeringSlice.actions;
 
 export default FeatureEngineeringSlice.reducer;
