@@ -13,6 +13,7 @@ import ReactFlow, {
   useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
+import AddModify from "../NodeBased/CustomNodes/AddModify/AddModify";
 import ChartNode from "../NodeBased/CustomNodes/ChartNode/ChartNode";
 import EDANode from "../NodeBased/CustomNodes/EDANode/EDANode";
 import MergeDatasetNode from "../NodeBased/CustomNodes/MergeDatasetNode/MergeDatasetNode";
@@ -22,7 +23,9 @@ import TimeSeriesNode from "../NodeBased/CustomNodes/TimeSeiresNode/TimeSeriesNo
 import UploadFile from "../NodeBased/CustomNodes/UploadFile/UploadFile";
 import Sidebar from "../NodeBased/components/Sidebar/Sidebar";
 import {
+  handleAddModify,
   handleFileForMergeDataset,
+  handleMergeDataset,
   handleOutputTable,
   handlePlotOptions,
   handleReverseML,
@@ -38,6 +41,7 @@ const nodeTypes = {
   ReverseML: ReverseMLNode,
   "Time Series Analysis": TimeSeriesNode,
   "Merge Dataset": MergeDatasetNode,
+  "Add/Modify": AddModify,
 };
 
 const initialNodes = [
@@ -96,7 +100,24 @@ function EditorPage() {
   };
 
   const onEdgesDelete = (e) => {
-    // console.log(e)
+    const sourceNode = rflow.getNode(e[0].source);
+    const targetNode = rflow.getNode(e[0].target);
+
+    if (sourceNode.type === "upload" && targetNode.type === "Merge Dataset") {
+      const tempNodes = rflow.getNodes().map((val) => {
+        if (val.id === targetNode.id) {
+          delete val.data[sourceNode.data.file_name];
+          if (val.data.merge && Object.keys(val.data).length <= 2) {
+            delete val.data.merge;
+          }
+        }
+        return val;
+      });
+      console.log(tempNodes);
+      rflow.setNodes(tempNodes);
+      return;
+    }
+
     const tempNodes = rflow.getNodes().map((val) => {
       if (val.id === e[0].target) return { ...val, data: undefined };
       return val;
@@ -135,13 +156,14 @@ function EditorPage() {
     async (params) => {
       const typeSource = rflow.getNode(params.source).type;
       const typeTarget = rflow.getNode(params.target).type;
-      let ok = true;
+      let ok = false;
       if (
         typeTarget === "output_table" ||
         typeTarget === "EDA" ||
         typeTarget === "output_graph" ||
         typeTarget === "Time Series Analysis" ||
-        typeTarget === "ReverseML"
+        typeTarget === "ReverseML" ||
+        typeTarget === "Add/Modify"
       ) {
         const temp = edgeList.filter((val) => val.target === params.target);
         if (temp && temp.length > 0) {
@@ -163,7 +185,8 @@ function EditorPage() {
         typeSource === "upload" &&
         (typeTarget === "output_table" ||
           typeTarget === "EDA" ||
-          typeTarget === "ReverseML")
+          typeTarget === "ReverseML" ||
+          typeTarget === "Add/Modify")
       ) {
         ok = await handleOutputTable(rflow, params);
       }
@@ -192,7 +215,16 @@ function EditorPage() {
       }
 
       if (typeSource === "upload" && typeTarget === "Merge Dataset") {
-        ok = await handleFileForMergeDataset(rflow, params)
+        ok = await handleFileForMergeDataset(rflow, params);
+      }
+
+      if (typeSource === "Merge Dataset" && typeTarget === "output_table") {
+        ok = await handleMergeDataset(rflow, params);
+      }
+
+      if(typeSource === 'Add/Modify' && typeTarget === 'upload') {
+        ok = await handleAddModify(rflow, params)
+        
       }
 
       if (!ok) return;
