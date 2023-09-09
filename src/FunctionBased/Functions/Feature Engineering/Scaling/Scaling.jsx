@@ -2,39 +2,69 @@ import { Checkbox, Radio } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import MultipleDropDown from "../../../Components/MultipleDropDown/MultipleDropDown";
+import { setReRender } from "../../../../Slices/UploadedFileSlice";
 import {
   fetchDataFromIndexedDB,
   updateDataInIndexedDB,
 } from "../../../../util/indexDB";
-import { setReRender } from "../../../../Slices/UploadedFileSlice";
+import MultipleDropDown from "../../../Components/MultipleDropDown/MultipleDropDown";
 
-function Scaling({ csvData }) {
+function Scaling({
+  csvData,
+  type = "function",
+  onValueChange = undefined,
+  initValue = undefined,
+}) {
   const allColumns = Object.keys(csvData[0]);
-  const [selectedColumns, setSelectedColumns] = useState();
+  const [selectedColumns, setSelectedColumns] = useState([]);
   const [option, setOption] = useState("Select Columns");
   const [defaultValue, setDefaultValue] = useState("Blank");
   const [method, setMethod] = useState("Min-Max Scaler");
   const activeCsvFile = useSelector((state) => state.uploadedFile.activeFile);
   const render = useSelector((state) => state.uploadedFile.rerender);
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    if (defaultValue === "Blank") setSelectedColumns([]);
-    if (defaultValue === "All") setSelectedColumns(Object.keys(csvData[0]));
-    if (defaultValue === "Numerical")
+    if (type === "node" && initValue) {
+      console.log(initValue);
+      setOption(initValue.options || "Select Columns");
+      setMethod(initValue.method || "Min-Max Scaler");
+      setDefaultValue(initValue.default_value || "Blank");
+      setSelectedColumns(initValue.select_column || []);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (type === "node") {
+      onValueChange((prev) => ({
+        ...prev,
+        options: option,
+        method,
+        default_value: defaultValue,
+        select_column: selectedColumns,
+      }));
+    }
+  }, [option, method, defaultValue, selectedColumns]);
+
+  // useEffect(() => {}, [defaultValue, csvData]);
+
+  const handleDefaultValue = (e) => {
+    setDefaultValue(e);
+    if (e === "Blank") setSelectedColumns([]);
+    if (e === "All") setSelectedColumns(Object.keys(csvData[0]));
+    if (e === "Numerical")
       setSelectedColumns(
         Object.keys(csvData[0]).filter(
           (val) => typeof csvData[0][val] === "number"
         )
       );
-    if (defaultValue === "Categorical")
+    if (e === "Categorical")
       setSelectedColumns(
         Object.keys(csvData[0]).filter(
           (val) => typeof csvData[0][val] === "string"
         )
       );
-  }, [defaultValue, csvData]);
+  };
 
   const handleSave = async () => {
     try {
@@ -48,7 +78,7 @@ function Scaling({ csvData }) {
           method,
           default_value: defaultValue,
           select_column: selectedColumns,
-          file: csvData
+          file: csvData,
         }),
       });
       let Data = await res.json();
@@ -77,7 +107,7 @@ function Scaling({ csvData }) {
         progress: undefined,
         theme: "colored",
       });
-      dispatch(setReRender(!render))
+      dispatch(setReRender(!render));
     } catch (error) {
       toast.error("Something went wrong. Please try again", {
         position: "bottom-right",
@@ -94,7 +124,9 @@ function Scaling({ csvData }) {
 
   return (
     <div className="mt-8">
-      <div className="flex items-center gap-4">
+      <div
+        className={`flex items-center gap-4 ${type === "node" && "flex-col"}`}
+      >
         <div className="flex flex-col gap-1 w-full">
           <label className="text-lg font-medium" htmlFor="">
             Options
@@ -126,9 +158,11 @@ function Scaling({ csvData }) {
             <option value="Robust Scaler">Robust Scaler</option>
           </select>
         </div>
-        <Checkbox className="w-full" color="success">
-          Add To Pipeline
-        </Checkbox>
+        {type === "function" && (
+          <Checkbox className="w-full" color="success">
+            Add To Pipeline
+          </Checkbox>
+        )}
       </div>
       <div className="mt-4">
         <p>Default Value</p>
@@ -138,7 +172,8 @@ function Scaling({ csvData }) {
             defaultValue="Blank"
             color="success"
             value={defaultValue}
-            onChange={(e) => setDefaultValue(e)}
+            size={type === "node" ? "sm" : "md"}
+            onChange={(e) => handleDefaultValue(e)}
           >
             <Radio value="Blank">Blank</Radio>
             <Radio value="All">All</Radio>
@@ -155,12 +190,14 @@ function Scaling({ csvData }) {
           />
         </div>
       </div>
-      <button
-        className="self-start border-2 px-6 tracking-wider bg-primary-btn text-white font-medium rounded-md py-2 mt-8"
-        onClick={handleSave}
-      >
-        Submit
-      </button>
+      {type === "function" && (
+        <button
+          className="self-start border-2 px-6 tracking-wider bg-primary-btn text-white font-medium rounded-md py-2 mt-8"
+          onClick={handleSave}
+        >
+          Submit
+        </button>
+      )}
     </div>
   );
 }

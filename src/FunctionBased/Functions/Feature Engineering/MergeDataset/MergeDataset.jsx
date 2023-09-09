@@ -43,6 +43,7 @@ function MergeDataset({ csvData }) {
         }),
       });
       let Data = await res.json();
+      Data = JSON.parse(Data)
 
       let fileName = new_dataset_name;
 
@@ -71,7 +72,7 @@ function MergeDataset({ csvData }) {
       });
       dispatch(setReRender(!render))
     } catch (error) {
-      toast.error("Something went wrong. Please try again", {
+      toast.error(error.message, {
         position: "bottom-right",
         autoClose: 5000,
         hideProgressBar: false,

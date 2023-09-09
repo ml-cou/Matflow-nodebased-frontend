@@ -1,15 +1,36 @@
 import { Input, Radio } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import SingleDropDown from "../../../../Components/SingleDropDown/SingleDropDown";
 import { setData } from "../../../../../Slices/FeatureEngineeringSlice";
+import SingleDropDown from "../../../../Components/SingleDropDown/SingleDropDown";
 
-function Add_NewColumn({ csvData }) {
+function Add_NewColumn({
+  csvData,
+  nodeId,
+  type = "function",
+  rflow = undefined,
+}) {
   const [select_methods, setMethod] = useState("Input String");
   const columnNames = Object.keys(csvData[0]);
   const [input_string, setInputString] = useState("");
   const [select_field, setSelectField] = useState(columnNames[0]);
   const dispatch = useDispatch();
+  let nodeDetails = {};
+  if (rflow) {
+    nodeDetails = rflow.getNode(nodeId);
+  }
+
+  useEffect(() => {
+    if (nodeDetails && type === "node") {
+      let data = nodeDetails.data;
+      if (data && data.addModify && data.addModify.method === "New Column") {
+        data = data.addModify.data;
+        setInputString(data.input_string || "");
+        setSelectField(data.select_field || columnNames[0]);
+        setMethod(data.select_methods || "Input String");
+      }
+    }
+  }, [nodeDetails]);
 
   useEffect(() => {
     dispatch(
@@ -27,7 +48,7 @@ function Add_NewColumn({ csvData }) {
         <Radio.Group
           orientation="vertical"
           label="Select Methods"
-          defaultValue={select_methods}
+          value={select_methods}
           onChange={(e) => setMethod(e)}
         >
           <Radio value="Input String" color="success">
@@ -55,7 +76,7 @@ function Add_NewColumn({ csvData }) {
             <SingleDropDown
               columnNames={columnNames}
               onValueChange={setSelectField}
-              initValue={columnNames[0]}
+              initValue={select_field}
             />
           </div>
         )}

@@ -1,19 +1,66 @@
 import { Input } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import SingleDropDown from "../../../../Components/SingleDropDown/SingleDropDown";
 import { setData } from "../../../../../Slices/FeatureEngineeringSlice";
+import SingleDropDown from "../../../../Components/SingleDropDown/SingleDropDown";
 
-function Modify_ReplaceValue({ csvData }) {
+function Modify_ReplaceValue({
+  csvData,
+  nodeId,
+  type = "function",
+  rflow = undefined,
+}) {
   const columnNames = Object.keys(csvData[0]);
   const [subMethod, setSubMethod] = useState("Text Input");
   const [fillNullMethod, setFillNullMethod] = useState("Custom Value");
   const [stringOperationMethod, setStringOperationMethod] =
     useState("Uppercase");
-
   const [data, setdata] = useState({ old_value: "", new_value: "" });
   const [from_another_column, setFromAnotherColumn] = useState("");
   const dispatch = useDispatch();
+  let nodeDetails = {};
+  if (rflow) {
+    nodeDetails = rflow.getNode(nodeId);
+  }
+
+  useEffect(() => {
+    if (nodeDetails && type === "node") {
+      let data = nodeDetails.data;
+      if (
+        data &&
+        data.addModify &&
+        data.addModify.method === "Replace Values"
+      ) {
+        data = data.addModify.data;
+        setFromAnotherColumn(data.select_column || "");
+        setSubMethod(data.sub_method || "Text Input");
+        let val = data.sub_method || "Text Input";
+        if (val === "Text Input")
+          setdata({
+            old_value: data.old_value || "",
+            new_value: data.new_value || "",
+          });
+        if (val === "Numpy Operations")
+          setdata({
+            select_an_operation: data.select_an_operation || "np.log10",
+          });
+        if (val === "Fill Null") {
+          setdata({
+            fill_null_values: data.fill_null_values || "Custom Value",
+            enter_custom_value: data.enter_custom_value || "",
+          });
+          setFillNullMethod(data.fill_null_values || "Custom Value");
+        }
+        if (val === "String Operations") {
+          setdata({
+            select_an_operation: data.select_an_operation || "Uppercase",
+            enter_character_to_remove: data.enter_character_to_remove || "",
+          });
+          setStringOperationMethod(data.select_an_operation);
+        }
+      }
+    }
+  }, [nodeDetails]);
 
   useEffect(() => {
     if (from_another_column)
@@ -79,8 +126,7 @@ function Modify_ReplaceValue({ csvData }) {
           <div className="flex flex-col gap-1">
             <label htmlFor="">Select an operation</label>
             <select
-              name=""
-              id=""
+              value={data.select_an_operation || "np.log10"}
               className="px-2 py-3 rounded-lg"
               onChange={(e) =>
                 setdata({ ...data, select_an_operation: e.target.value })
@@ -99,8 +145,6 @@ function Modify_ReplaceValue({ csvData }) {
             <div className="flex flex-col gap-1">
               <label htmlFor="">Select method to fill null values</label>
               <select
-                name=""
-                id=""
                 className="px-2 py-3 rounded-lg"
                 value={fillNullMethod}
                 onChange={(e) => {
@@ -132,6 +176,7 @@ function Modify_ReplaceValue({ csvData }) {
                   <SingleDropDown
                     columnNames={columnNames}
                     onValueChange={setFromAnotherColumn}
+                    initValue={from_another_column}
                   />
                 </div>
               )}

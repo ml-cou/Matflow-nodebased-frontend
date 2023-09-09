@@ -17,11 +17,11 @@ import {
 function AlterFieldName({ csvData }) {
   const dispatch = useDispatch();
   const activeCsvFile = useSelector((state) => state.uploadedFile.activeFile);
-
+  const [data, setData] = useState([{ column_name: "", new_field_name: "" }]);
   const [numberOfColumns, setNumberOfColumns] = useState(1);
   const [columnNames, setColumnNames] = useState();
   const [savedAsNewDataset, setSavedAsNewDataset] = useState(false);
-  const [data, setData] = useState([{ column_name: "", new_field_name: "" }]);
+  
   const featureData = useSelector((state) => state.featureEngineering);
   const render = useSelector((state) => state.uploadedFile.rerender);
 

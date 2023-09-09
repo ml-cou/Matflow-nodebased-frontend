@@ -1,6 +1,7 @@
 import { Input, Radio } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
 import { fetchDataFromIndexedDB } from "../../../util/indexDB";
+import AgGridComponent from "../../Components/AgGridComponent/AgGridComponent";
 import MultipleDropDown from "../../Components/MultipleDropDown/MultipleDropDown";
 import SingleDropDown from "../../Components/SingleDropDown/SingleDropDown";
 
@@ -19,6 +20,9 @@ function ModelDeployment({ csvData }) {
   const [current_model, setCurrentModel] = useState();
   const [model_deploy, setModelDeploy] = useState();
   const [pred_result, setPredResult] = useState();
+  const [dataframe, setDataframe] = useState();
+  const [rowDef, setRowDef] = useState();
+  const [columnDefs, setColumnDefs] = useState();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,6 +47,30 @@ function ModelDeployment({ csvData }) {
     }
   }, [current_model]);
 
+  useEffect(() => {
+    if (dataframe) {
+      const temp =
+        dataframe && dataframe.length > 0
+          ? Object.keys(dataframe[0]).map((key) => ({
+              headerName: key,
+              field: key,
+              valueGetter: (params) => {
+                return params.data[key];
+              },
+            }))
+          : [];
+      setColumnDefs(temp);
+      let tempFilteredCol = filtered_column.map((val) => val.col);
+      tempFilteredCol = new Set(tempFilteredCol);
+
+      const tempRow = dataframe.filter(
+        (val) => tempFilteredCol.has(val["Name of Features"])
+      );
+      
+      setRowDef(tempRow);
+    }
+  }, [dataframe, filtered_column]);
+
   const handleDatasetChange = async (name) => {
     setPredResult("");
     setCurrentDataset(name);
@@ -59,7 +87,7 @@ function ModelDeployment({ csvData }) {
       const train = await fetchDataFromIndexedDB(
         splitted_datasets[sp_ind][name][1]
       );
-      console.log(train);
+
       setTrainData(train);
       const res = await fetch("http://127.0.0.1:8000/api/deploy_data/", {
         method: "POST",
@@ -72,7 +100,7 @@ function ModelDeployment({ csvData }) {
         }),
       });
       const data = await res.json();
-      console.log(data);
+      setDataframe(data.dataframe);
       setAllColumnValues(data.result);
       setAllColumnNames(data.result.map((val) => val.col));
       setFilteredColumn(data.result);
@@ -108,6 +136,7 @@ function ModelDeployment({ csvData }) {
     });
 
     const dat = await res2.json();
+
     setPredResult(dat.pred);
   };
 
@@ -206,13 +235,18 @@ function ModelDeployment({ csvData }) {
                   Submit
                 </button>
               </div>
-              <div className=" relative">
-                <div className="sticky top-4 mt-4">
-                  <h1 className="font-medium text-3xl tracking-wide">Prediction</h1>
+              <div className="">
+                <div className="mt-4">
+                  <h1 className="font-medium text-3xl tracking-wide">
+                    Prediction
+                  </h1>
                   <p className="mt-4 text-2xl">
                     {target_val}:{" "}
                     <span className="font-semibold ml-2">{pred_result}</span>
                   </p>
+                </div>
+                <div className="mt-8 w-full max-w-xl h-[610px] ag-theme-alpine">
+                  <AgGridComponent rowData={rowDef} columnDefs={columnDefs} />
                 </div>
               </div>
             </div>

@@ -6,21 +6,9 @@ let id = 1;
 
 const DatasetDisplay = ({ csvData }) => {
   const [value] = useState("All");
-  // const [csvData, setCsvData] = useState([]);
   const [filterText] = useState("");
-  const activeCsvFile = useSelector((state) => state.uploadedFile.activeFile);
-  const render = useSelector((state) => state.uploadedFile.rerender);
 
-  // Fetch data from IndexedDB
-  // useEffect(() => {
-  //   if (activeCsvFile && activeCsvFile.name) {
-  //     const getData = async () => {
-  //       const res = await fetchDataFromIndexedDB(activeCsvFile.name);
-  //       setCsvData(res);
-  //     };
-  //     getData();
-  //   }
-  // }, [activeCsvFile, render]);
+  
 
   // Define the row data based on the selected view option
   let rowData;

@@ -1,11 +1,16 @@
 import { Checkbox, Input } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
+import { setData } from "../../../../../Slices/FeatureEngineeringSlice";
 import MultipleDropDown from "../../../../Components/MultipleDropDown/MultipleDropDown";
 import SingleDropDown from "../../../../Components/SingleDropDown/SingleDropDown";
-import { setData } from "../../../../../Slices/FeatureEngineeringSlice";
 
-function Add_GroupCategorical({ csvData }) {
+function Add_GroupCategorical({
+  csvData,
+  type = "function",
+  nodeId,
+  rflow = undefined,
+}) {
   const [nGroups, setNGroups] = useState(2);
   const columnNames = Object.keys(csvData[0]).filter(
     (val) => typeof csvData[0][val] === "number"
@@ -27,6 +32,28 @@ function Add_GroupCategorical({ csvData }) {
   const [sort_value, setSort_value] = useState(true);
   const [show_group, setShow_group] = useState(false);
   const dispatch = useDispatch();
+  let nodeDetails = {};
+  if (rflow) {
+    nodeDetails = rflow.getNode(nodeId);
+  }
+
+  useEffect(() => {
+    if (nodeDetails  && type === 'node') {
+      let data = nodeDetails.data;
+      if (
+        data &&
+        data.addModify &&
+        data.addModify.method === "Group Categorical"
+      ) {
+        data = data.addModify.data;
+        if (data.n_group_data.length > 0) setNGroupData(data.n_group_data);
+        setGroupColumn(data.group_column || "");
+        setNGroups(data.n_groups || 2);
+        setSort_value(!!data.sort_value);
+        setShow_group(data.show_group || false);
+      }
+    }
+  }, [nodeDetails]);
 
   useEffect(() => {
     dispatch(
@@ -84,38 +111,42 @@ function Add_GroupCategorical({ csvData }) {
 
   return (
     <div className="mt-12">
-      <div className="flex gap-8 mb-4">
-        <Input
-          label="N Groups"
-          value={nGroups}
-          onChange={(e) => {
-            const val = e.target.value;
-            setNGroups(val);
-            if (val < nGroupData.length) setNGroupData(nGroupData.slice(0, val));
-            else {
-              const temp = JSON.parse(JSON.stringify(nGroupData));
-              while (val - temp.length > 0) {
-                temp.push({
-                  group_name: "",
-                  group_members: [],
-                  others: false,
-                });
+      <div className={`flex gap-8 mb-4 ${type === "node" && "flex-col"}`}>
+        <div className={`flex items-center w-full max-w-3xl gap-8`}>
+          <Input
+            label="N Groups"
+            value={nGroups}
+            onChange={(e) => {
+              const val = e.target.value;
+              setNGroups(val);
+              if (val < nGroupData.length)
+                setNGroupData(nGroupData.slice(0, val));
+              else {
+                const temp = JSON.parse(JSON.stringify(nGroupData));
+                while (val - temp.length > 0) {
+                  temp.push({
+                    group_name: "",
+                    group_members: [],
+                    others: false,
+                  });
+                }
+                setNGroupData(temp);
               }
-              setNGroupData(temp);
-            }
-          }}
-          type="number"
-        />
-        <div className="flex-grow">
-          <p>Group Column</p>
-          <SingleDropDown
-            columnNames={columnNames}
-            onValueChange={setGroupColumn}
+            }}
+            type="number"
           />
+          <div className="flex-grow">
+            <p>Group Column</p>
+            <SingleDropDown
+              columnNames={columnNames}
+              onValueChange={setGroupColumn}
+              initValue={groupColumn}
+            />
+          </div>
         </div>
-        <div className="flex flex-col gap-2">
+        <div className={`flex ${type === "node" ? "" : "flex-col"} gap-2`}>
           <Checkbox
-            defaultSelected={true}
+            isSelected={sort_value}
             color="success"
             onChange={(e) => setSort_value(e.valueOf())}
           >
@@ -123,6 +154,7 @@ function Add_GroupCategorical({ csvData }) {
           </Checkbox>
           <Checkbox
             color="success"
+            isSelected={show_group}
             onChange={(e) => setShow_group(e.valueOf())}
           >
             Show Group
@@ -137,6 +169,7 @@ function Add_GroupCategorical({ csvData }) {
                 <Input
                   label="Group Name"
                   fullWidth
+                  value={nGroupData[index].group_name}
                   onChange={(e) => handleChange(e, index)}
                 />
               </div>
@@ -147,10 +180,13 @@ function Add_GroupCategorical({ csvData }) {
                   setSelectedColumns={handleMultipleDropdown}
                   curInd={index}
                   disabled={nGroupData[index].others}
+                  defaultValue={nGroupData[index].group_members}
                 />
               </div>
               {index === nGroups - 1 && (
                 <Checkbox
+                  isSelected={nGroupData[index].others}
+                  size={type === "node" ? "sm" : "md"}
                   onChange={(e) => handleOtherChange(e.valueOf(), index)}
                 >
                   Others

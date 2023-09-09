@@ -8,7 +8,12 @@ import { toast } from "react-toastify";
 import AgGridComponent from "../../../Components/AgGridComponent/AgGridComponent";
 import SingleDropDown from "../../../Components/SingleDropDown/SingleDropDown";
 
-function Cluster({ csvData }) {
+function Cluster({
+  csvData,
+  type = "function",
+  onValueChange = undefined,
+  initValue = undefined,
+}) {
   const allColumns = Object.keys(csvData[0]);
   const [numberOfClass, setNumberOfClass] = useState(3);
   const [display_type, setDisplayType] = useState("Graph");
@@ -19,7 +24,26 @@ function Cluster({ csvData }) {
   const [columnDefs, setColumnDefs] = useState();
 
   useEffect(() => {
-    if (display_type === "Table") {
+    if (type === "node" && initValue) {
+      setNumberOfClass(initValue.numberOfClass || 3);
+      setTargetVariable(initValue.target_variable || "");
+      setData(initValue.data || ["", "", ""]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (type === "node") {
+      onValueChange({
+        display_type,
+        target_variable,
+        data,
+        numberOfClass,
+      });
+    }
+  }, [data, target_variable, numberOfClass]);
+
+  useEffect(() => {
+    if (display_type === "Table" && graphTableData) {
       const tableData = graphTableData.table;
       const tempColumnDefs =
         tableData.length > 0
@@ -50,6 +74,7 @@ function Cluster({ csvData }) {
         }),
       });
       let Data = await res.json();
+      // console.log({ Data, display_type });
       setGraphTableData(Data);
     } catch (error) {
       toast.error("Something went wrong. Please try again", {
@@ -98,7 +123,11 @@ function Cluster({ csvData }) {
           </Stack>
         </div>
       </div>
-      <div className="grid grid-cols-2 mt-8 gap-4">
+      <div
+        className={`grid grid-cols-2 mt-8 gap-4 ${
+          type === "node" && "grid-cols-1"
+        }`}
+      >
         {data.map((val, index) => {
           return (
             <div key={index} className="">
@@ -121,31 +150,37 @@ function Cluster({ csvData }) {
         })}
       </div>
       <div className="flex flex-col gap-4 mt-4">
-        <div>
-          <p>Display Type</p>
-          <SingleDropDown
-            columnNames={["Graph", "Table"]}
-            onValueChange={setDisplayType}
-            initValue={display_type}
-          />
-        </div>
+        {type === "function" && (
+          <div>
+            <p>Display Type</p>
+            <SingleDropDown
+              columnNames={["Graph", "Table"]}
+              onValueChange={setDisplayType}
+              initValue={display_type}
+            />
+          </div>
+        )}
         <div>
           <p>Target Variable</p>
           <SingleDropDown
             columnNames={allColumns}
             onValueChange={setTargetVariable}
+            initValue={target_variable}
           />
         </div>
       </div>
-      <button
-        className="self-start border-2 px-6 tracking-wider bg-primary-btn text-white font-medium rounded-md py-2 mt-8"
-        onClick={handleSave}
-      >
-        Submit
-      </button>
+      {type === "function" && (
+        <button
+          className="self-start border-2 px-6 tracking-wider bg-primary-btn text-white font-medium rounded-md py-2 mt-8"
+          onClick={handleSave}
+        >
+          Submit
+        </button>
+      )}
 
       <div className="mt-4">
-        {graphTableData &&
+        {type === "function" &&
+          graphTableData &&
           (display_type === "Graph" ? (
             <div className="flex justify-center mt-4">
               <Plot
