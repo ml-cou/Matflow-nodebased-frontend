@@ -14,21 +14,43 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import AddModify from "../NodeBased/CustomNodes/AddModify/AddModify";
+import AlterFieldNameNode from "../NodeBased/CustomNodes/AlterFieldNameNode/AlterFieldNameNode";
+import AppendDatasetNode from "../NodeBased/CustomNodes/AppendDatasetNode/AppendDatasetNode";
+import ChangeDtypeNode from "../NodeBased/CustomNodes/ChangeDTypeNode/ChangeDtypeNode";
 import ChartNode from "../NodeBased/CustomNodes/ChartNode/ChartNode";
+import ClusterNode from "../NodeBased/CustomNodes/ClusterNode/ClusterNode";
+import CorelationNode from "../NodeBased/CustomNodes/CorelationNode/CorelationNode";
+import DropRowsColumnNode from "../NodeBased/CustomNodes/DropRowsColumnNode/DropRowsColumnNode";
 import EDANode from "../NodeBased/CustomNodes/EDANode/EDANode";
+import EncodingNode from "../NodeBased/CustomNodes/EncodingNode/EncodingNode";
+import GroupNode from "../NodeBased/CustomNodes/GroupNode/GroupNode";
+import InformationNode from "../NodeBased/CustomNodes/InformationNode/InformationNode";
 import MergeDatasetNode from "../NodeBased/CustomNodes/MergeDatasetNode/MergeDatasetNode";
 import ReverseMLNode from "../NodeBased/CustomNodes/ReverseMLNode/ReverseMLNode";
+import ScalingNode from "../NodeBased/CustomNodes/ScalingNode/ScalingNode";
+import StatisticsNode from "../NodeBased/CustomNodes/StatisticsNode/StatisticsNode";
 import TableNode from "../NodeBased/CustomNodes/TableNode/TableNode";
 import TimeSeriesNode from "../NodeBased/CustomNodes/TimeSeiresNode/TimeSeriesNode";
 import UploadFile from "../NodeBased/CustomNodes/UploadFile/UploadFile";
 import Sidebar from "../NodeBased/components/Sidebar/Sidebar";
 import {
   handleAddModify,
+  handleAlterFieldName,
+  handleAppendDataset,
+  handleChangeDtype,
+  handleCluster,
+  handleDatasetCorrelation,
+  handleDatasetGroup,
+  handleDatasetInformation,
+  handleDatasetStatistics,
+  handleDropRowColumn,
+  handleEncoding,
   handleFileForMergeDataset,
   handleMergeDataset,
   handleOutputTable,
   handlePlotOptions,
   handleReverseML,
+  handleScaling,
   handleTimeSeriesAnalysis,
   isItTimeSeriesFile,
 } from "../util/NodeFunctions";
@@ -42,6 +64,17 @@ const nodeTypes = {
   "Time Series Analysis": TimeSeriesNode,
   "Merge Dataset": MergeDatasetNode,
   "Add/Modify": AddModify,
+  "Change Dtype": ChangeDtypeNode,
+  "Alter Field Name": AlterFieldNameNode,
+  "Drop Column/Rows": DropRowsColumnNode,
+  Scaling: ScalingNode,
+  Encoding: EncodingNode,
+  Cluster: ClusterNode,
+  "Append Dataset": AppendDatasetNode,
+  Information: InformationNode,
+  Statistics: StatisticsNode,
+  Corelation: CorelationNode,
+  Group: GroupNode,
 };
 
 const initialNodes = [
@@ -157,14 +190,7 @@ function EditorPage() {
       const typeSource = rflow.getNode(params.source).type;
       const typeTarget = rflow.getNode(params.target).type;
       let ok = false;
-      if (
-        typeTarget === "output_table" ||
-        typeTarget === "EDA" ||
-        typeTarget === "output_graph" ||
-        typeTarget === "Time Series Analysis" ||
-        typeTarget === "ReverseML" ||
-        typeTarget === "Add/Modify"
-      ) {
+      if (typeTarget !== "Merge Dataset" && typeTarget !== "Append Dataset") {
         const temp = edgeList.filter((val) => val.target === params.target);
         if (temp && temp.length > 0) {
           toast.error(`Connection limit of ${typeTarget} node is 1`, {
@@ -186,7 +212,17 @@ function EditorPage() {
         (typeTarget === "output_table" ||
           typeTarget === "EDA" ||
           typeTarget === "ReverseML" ||
-          typeTarget === "Add/Modify")
+          typeTarget === "Add/Modify" ||
+          typeTarget === "Change Dtype" ||
+          typeTarget === "Alter Field Name" ||
+          typeTarget === "Drop Column/Rows" ||
+          typeTarget === "Scaling" ||
+          typeTarget === "Encoding" ||
+          typeTarget === "Cluster" ||
+          typeTarget === "Information" ||
+          typeTarget === "Statistics" ||
+          typeTarget === "Corelation" ||
+          typeTarget === "Group")
       ) {
         ok = await handleOutputTable(rflow, params);
       }
@@ -214,17 +250,71 @@ function EditorPage() {
         ok = await handleTimeSeriesAnalysis(rflow, params);
       }
 
-      if (typeSource === "upload" && typeTarget === "Merge Dataset") {
+      if (
+        typeSource === "upload" &&
+        (typeTarget === "Merge Dataset" || typeTarget === "Append Dataset")
+      ) {
         ok = await handleFileForMergeDataset(rflow, params);
       }
 
-      if (typeSource === "Merge Dataset" && typeTarget === "output_table") {
+      if (typeSource === "Merge Dataset" && typeTarget === "upload") {
         ok = await handleMergeDataset(rflow, params);
       }
 
-      if(typeSource === 'Add/Modify' && typeTarget === 'upload') {
-        ok = await handleAddModify(rflow, params)
-        
+      if (typeSource === "Add/Modify" && typeTarget === "upload") {
+        ok = await handleAddModify(rflow, params);
+      }
+
+      if (typeSource === "Change Dtype" && typeTarget === "upload") {
+        ok = await handleChangeDtype(rflow, params);
+      }
+
+      if (typeSource === "Alter Field Name" && typeTarget === "upload") {
+        ok = await handleAlterFieldName(rflow, params);
+      }
+
+      if (typeSource === "Drop Column/Rows" && typeTarget === "upload") {
+        ok = await handleDropRowColumn(rflow, params);
+      }
+
+      if (typeSource === "Scaling" && typeTarget === "upload") {
+        ok = await handleScaling(rflow, params);
+      }
+
+      if (typeSource === "Encoding" && typeTarget === "upload") {
+        ok = await handleEncoding(rflow, params);
+      }
+
+      if (typeSource === "Cluster" && typeTarget === "output_table") {
+        ok = await handleCluster(rflow, params, "table");
+      }
+
+      if (typeSource === "Cluster" && typeTarget === "output_graph") {
+        ok = await handleCluster(rflow, params, "graph");
+      }
+
+      if (typeSource === "Append Dataset" && typeTarget === "upload") {
+        ok = await handleAppendDataset(rflow, params);
+      }
+
+      if (typeSource === "Information" && typeTarget === "output_table") {
+        ok = handleDatasetInformation(rflow, params);
+      }
+
+      if (typeSource === "Statistics" && typeTarget === "output_table") {
+        ok = handleDatasetStatistics(rflow, params);
+      }
+
+      if (typeSource === "Corelation" && typeTarget === "output_table") {
+        ok = await handleDatasetCorrelation(rflow, params, "table");
+      }
+
+      if (typeSource === "Corelation" && typeTarget === "output_graph") {
+        ok = await handleDatasetCorrelation(rflow, params, "graph");
+      }
+
+      if (typeSource === "Group" && typeTarget === "output_table") {
+        ok = await handleDatasetGroup(rflow, params);
       }
 
       if (!ok) return;
