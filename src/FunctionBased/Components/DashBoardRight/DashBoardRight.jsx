@@ -38,6 +38,7 @@ import SplitDataset from "../../Functions/Model Building/SplitDataset/SplitDatas
 import ModelDeployment from "../../Functions/ModelDeployment/ModelDeployment";
 import ReverseML from "../../Functions/ReverseML/ReverseML";
 import TimeSeriesAnalysis from "../../Functions/TimeSeriesAnalysis/TimeSeriesAnalysis";
+import Imputation from "../../Functions/Feature Engineering/Imputation/Imputation";
 
 function DashBoardRight() {
   const activeFunction = useSelector((state) => state.sideBar.activeFunction);
@@ -130,6 +131,9 @@ function DashBoardRight() {
             )}
           {csvData && activeFunction && activeFunction === "Change Dtype" && (
             <ChangeDType csvData={csvData} />
+          )}
+          {csvData && activeFunction && activeFunction === "Imputation" && (
+            <Imputation csvData={csvData} />
           )}
           {csvData &&
             activeFunction &&
