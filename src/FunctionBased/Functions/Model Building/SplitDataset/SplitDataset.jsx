@@ -11,7 +11,12 @@ import {
 } from "../../../../util/indexDB";
 import SingleDropDown from "../../../Components/SingleDropDown/SingleDropDown";
 
-function SplitDataset({ csvData }) {
+function SplitDataset({
+  csvData,
+  type = "function",
+  initValue = undefined,
+  onValueChange = undefined,
+}) {
   const columnNames = Object.keys(csvData[0]);
   const [target_variable, setTargetVariable] = useState("");
   const [stratify, setStratify] = useState("");
@@ -24,9 +29,59 @@ function SplitDataset({ csvData }) {
   const [random_state, setRandomState] = useState(1);
   const dispatch = useDispatch();
   const render = useSelector((state) => state.uploadedFile.rerender);
-  const activeCsvFile = useSelector((state) => state.uploadedFile.activeFile);
+  let activeCsvFile = useSelector((state) => state.uploadedFile.activeFile);
 
   useEffect(() => {
+    if (type === "node" && initValue) {
+      setTargetVariable(initValue.target_variable || "");
+      setStratify(initValue.stratify || "");
+      setTestSize(initValue.test_size || 0.5);
+      setRandomState(initValue.random_state || 1);
+      setShuffle(!!initValue.shuffle);
+      setTestDataName(initValue.testDataName);
+      setTrainDataName(initValue.trainDataName);
+      setSplittedName(initValue.splittedName);
+      if (initValue.target_variable) {
+        const temp =
+          typeof csvData[0][initValue.target_variable] === "number"
+            ? "Continuous"
+            : "Categorical";
+        setWhatKind(temp);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (type === "node") {
+      onValueChange({
+        ...initValue,
+        target_variable,
+        stratify,
+        test_size,
+        random_state,
+        shuffle,
+        file: csvData,
+        testDataName,
+        trainDataName,
+        splittedName,
+        whatKind
+      });
+    }
+  }, [
+    target_variable,
+    stratify,
+    test_size,
+    random_state,
+    shuffle,
+    testDataName,
+    trainDataName,
+    splittedName,
+    whatKind
+  ]);
+
+  useEffect(() => {
+    let file_name = activeCsvFile.name;
+    if (type === "node") file_name = initValue.file_name;
     if (target_variable) {
       const temp =
         typeof csvData[0][target_variable] === "number"
@@ -34,17 +89,17 @@ function SplitDataset({ csvData }) {
           : "Categorical";
       setWhatKind(temp);
       setTestDataName(
-        activeCsvFile.name +
+        file_name +
           "_" +
           Object.keys(csvData[0]).filter((val) => val === target_variable)[0]
       );
       setTrainDataName(
-        activeCsvFile.name +
+        file_name +
           "_" +
           Object.keys(csvData[0]).filter((val) => val === target_variable)[0]
       );
       setSplittedName(
-        activeCsvFile.name +
+        file_name +
           "_" +
           Object.keys(csvData[0]).filter((val) => val === target_variable)[0]
       );
@@ -143,7 +198,11 @@ function SplitDataset({ csvData }) {
 
   return (
     <div className="mt-8">
-      <div className="flex items-center gap-8">
+      <div
+        className={`flex items-center gap-8 ${
+          type === "node" && "flex-col gap-2"
+        }`}
+      >
         <div className="w-full">
           <p>
             Target Variable{" "}
@@ -154,6 +213,7 @@ function SplitDataset({ csvData }) {
           <SingleDropDown
             columnNames={columnNames}
             onValueChange={setTargetVariable}
+            initValue={target_variable}
           />
         </div>
         <div className="w-full">
@@ -161,6 +221,7 @@ function SplitDataset({ csvData }) {
           <SingleDropDown
             columnNames={["-", ...columnNames]}
             onValueChange={setStratify}
+            initValue={stratify}
           />
         </div>
       </div>
@@ -201,11 +262,16 @@ function SplitDataset({ csvData }) {
             </Stack>
           </div>
         </div>
-        <Checkbox color="success" onChange={(e) => setShuffle(e.valueOf())}>
+        <Checkbox
+          color="success"
+          size={type === "node" ? "sm" : "md"}
+          isSelected={shuffle}
+          onChange={(e) => setShuffle(e.valueOf())}
+        >
           Shuffle
         </Checkbox>
       </div>
-      <div className="mt-12 flex  gap-4">
+      <div className={`mt-12 flex gap-4 ${type === "node" && "flex-col"}`}>
         <div className="w-full">
           <Input
             required
@@ -242,12 +308,14 @@ function SplitDataset({ csvData }) {
           />
         </div>
       </div>
-      <button
-        className="self-start border-2 px-6 tracking-wider bg-primary-btn text-white font-medium rounded-md py-2 mt-8"
-        onClick={handleSave}
-      >
-        Submit
-      </button>
+      {type === "function" && (
+        <button
+          className="self-start border-2 px-6 tracking-wider bg-primary-btn text-white font-medium rounded-md py-2 mt-8"
+          onClick={handleSave}
+        >
+          Submit
+        </button>
+      )}
     </div>
   );
 }

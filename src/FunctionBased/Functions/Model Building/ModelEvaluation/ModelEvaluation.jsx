@@ -1,10 +1,10 @@
 import { Checkbox, Radio } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
+import { fetchDataFromIndexedDB } from "../../../../util/indexDB";
 import AgGridComponent from "../../../Components/AgGridComponent/AgGridComponent";
 import MultipleDropDown from "../../../Components/MultipleDropDown/MultipleDropDown";
 import SingleDropDown from "../../../Components/SingleDropDown/SingleDropDown";
-import { fetchDataFromIndexedDB } from "../../../../util/indexDB";
 
 function ModelEvaluation() {
   const [display_type, setDisplayType] = useState("Table");
@@ -20,6 +20,7 @@ function ModelEvaluation() {
   const [graphData, setGraphData] = useState();
   const [notFound, setNotFound] = useState(false);
   const [allModelName, setAllModelName] = useState();
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,6 +61,7 @@ function ModelEvaluation() {
       return { ...tempModels[val].metrics_table, name: val };
     });
     setAllModelName(temp.map((val) => val.name));
+    
     setColumnName(Object.keys(temp[0]));
     setFile(temp);
   };
@@ -233,7 +235,10 @@ function ModelEvaluation() {
         <div className="mt-4">
           <div className="mb-4">
             <p className="tracking-wide">Filter Model</p>
-            <MultipleDropDown columnNames={allModelName} />
+            <MultipleDropDown
+              columnNames={allModelName}
+              setSelectedColumns={setSelectedColumn}
+            />
           </div>
           <div
             className="ag-theme-alpine"
