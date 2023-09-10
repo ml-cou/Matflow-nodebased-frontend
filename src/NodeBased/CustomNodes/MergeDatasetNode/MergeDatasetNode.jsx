@@ -15,14 +15,13 @@ function MergeDatasetNode({ id, data }) {
         .filter(
           (edge) =>
             edge.source === id &&
-            rflow.getNode(edge.target).type === "output_table"
+            rflow.getNode(edge.target).type === "upload"
         );
       temp.forEach(async (val) => {
         await handleMergeDataset(rflow, val);
       });
     })();
 
-    console.log(data);
   }, [data, rflow]);
 
   return (

@@ -14,7 +14,7 @@ function TableNode({ id, data }) {
 
   useEffect(() => {
     if (data && data.table) {
-      const tempColDefs =
+      let tempColDefs =
         data.table.length > 0
           ? Object.keys(data.table[0]).map((key) => ({
               headerName: key,
@@ -25,6 +25,9 @@ function TableNode({ id, data }) {
             }))
           : [];
 
+      if (tempColDefs && tempColDefs.length - 1 >= 0)
+        tempColDefs = tempColDefs.slice(tempColDefs.length-1).concat(tempColDefs.slice(0, tempColDefs.length-1));
+      console.log(tempColDefs);
       setColDefs(tempColDefs);
     }
   }, [data]);
