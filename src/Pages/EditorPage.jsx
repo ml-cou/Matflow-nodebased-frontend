@@ -21,9 +21,11 @@ import ChartNode from "../NodeBased/CustomNodes/ChartNode/ChartNode";
 import ClusterNode from "../NodeBased/CustomNodes/ClusterNode/ClusterNode";
 import CorelationNode from "../NodeBased/CustomNodes/CorelationNode/CorelationNode";
 import DropRowsColumnNode from "../NodeBased/CustomNodes/DropRowsColumnNode/DropRowsColumnNode";
+import DuplicateNode from "../NodeBased/CustomNodes/DuplicateNode/DuplicateNode";
 import EDANode from "../NodeBased/CustomNodes/EDANode/EDANode";
 import EncodingNode from "../NodeBased/CustomNodes/EncodingNode/EncodingNode";
 import GroupNode from "../NodeBased/CustomNodes/GroupNode/GroupNode";
+import ImputationNode from "../NodeBased/CustomNodes/ImputationNode/ImputationNode";
 import InformationNode from "../NodeBased/CustomNodes/InformationNode/InformationNode";
 import MergeDatasetNode from "../NodeBased/CustomNodes/MergeDatasetNode/MergeDatasetNode";
 import ReverseMLNode from "../NodeBased/CustomNodes/ReverseMLNode/ReverseMLNode";
@@ -40,12 +42,15 @@ import {
   handleChangeDtype,
   handleCluster,
   handleDatasetCorrelation,
+  handleDatasetDuplicate,
   handleDatasetGroup,
   handleDatasetInformation,
   handleDatasetStatistics,
   handleDropRowColumn,
   handleEncoding,
   handleFileForMergeDataset,
+  handleImputation,
+  handleImputationInit,
   handleMergeDataset,
   handleOutputTable,
   handlePlotOptions,
@@ -75,6 +80,8 @@ const nodeTypes = {
   Statistics: StatisticsNode,
   Corelation: CorelationNode,
   Group: GroupNode,
+  Duplicate: DuplicateNode,
+  Imputation: ImputationNode,
 };
 
 const initialNodes = [
@@ -222,7 +229,8 @@ function EditorPage() {
           typeTarget === "Information" ||
           typeTarget === "Statistics" ||
           typeTarget === "Corelation" ||
-          typeTarget === "Group")
+          typeTarget === "Group" ||
+          typeTarget === "Duplicate")
       ) {
         ok = await handleOutputTable(rflow, params);
       }
@@ -315,6 +323,18 @@ function EditorPage() {
 
       if (typeSource === "Group" && typeTarget === "output_table") {
         ok = await handleDatasetGroup(rflow, params);
+      }
+
+      if (typeSource === "Duplicate" && typeTarget === "output_table") {
+        ok = await handleDatasetDuplicate(rflow, params);
+      }
+
+      if (typeSource === "upload" && typeTarget === "Imputation") {
+        ok = await handleImputationInit(rflow, params);
+      }
+
+      if (typeSource === "Imputation" && typeTarget === "upload") {
+        ok = await handleImputation(rflow, params);
       }
 
       if (!ok) return;

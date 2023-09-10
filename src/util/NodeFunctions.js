@@ -840,3 +840,144 @@ export const handleDatasetGroup = async (rflow, params) => {
     return false;
   }
 };
+
+export const handleDatasetDuplicate = async (rflow, params) => {
+  try {
+    let { table: rowData, duplicate } = rflow.getNode(params.source).data;
+
+    if (!duplicate) throw new Error("Check Duplicate Node.");
+
+    const duplicates = [];
+    const seen = new Set();
+
+    rowData.forEach((obj) => {
+      const excludedObj = {};
+      for (const key in obj) {
+        if (!duplicate.excludeKeys.includes(key)) {
+          excludedObj[key] = obj[key];
+        }
+      }
+      const key = Object.values(excludedObj).join("|");
+      if (seen.has(key)) {
+        duplicates.push(obj);
+      } else {
+        seen.add(key);
+      }
+    });
+
+    if (duplicates.length === 0) {
+      toast.warning("No duplicate data found", {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+      return false;
+    }
+
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return {
+          ...val,
+          data: { table: duplicates },
+        };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
+
+export const handleImputationInit = async (rflow, params) => {
+  try {
+    const { table } = rflow.getNode(params.source).data;
+
+    if (!table) throw new Error("Something wrong with upload node");
+
+    const res = await fetch("http://127.0.0.1:8000/api/imputation_data1", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        file: table,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!data.null_var || data.null_var.length === 0) {
+      toast.warning("This dataset doen't contain any imputation", {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+      return false;
+    }
+
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return { ...val, data: { table, null_var: data.null_var } };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
+
+export const handleImputation = async (rflow, params) => {
+  try {
+    let {table, imputation } = rflow.getNode(params.source).data;
+
+    if (!imputation) throw new Error("Check Imputation Node.");
+    let url = "http://127.0.0.1:8000/api/imputation_result";
+    // console.log(encoding)
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        file: table,
+        Select_columns: imputation.select_column,
+        strategy: imputation.activeStrategy === "mode" ? "constant" : imputation.activeStrategy,
+        fill_group: imputation.fill_group,
+        constant: imputation.constant,
+      }),
+    });
+
+    let data = await res.json();
+    console.log(data);
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return {
+          ...val,
+          data: { table: data, file_name: imputation.dataset_name },
+        };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
