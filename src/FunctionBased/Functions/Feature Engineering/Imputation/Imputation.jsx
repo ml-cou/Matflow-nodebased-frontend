@@ -10,7 +10,12 @@ import {
 } from "../../../../util/indexDB";
 import SingleDropDown from "../../../Components/SingleDropDown/SingleDropDown";
 
-function Imputation({ csvData }) {
+function Imputation({
+  csvData,
+  type = "function",
+  initValue = undefined,
+  onValueChange = undefined,
+}) {
   const [savedAsNewDataset, setSavedAsNewDataset] = useState(false);
   const [dataset_name, setDatasetName] = useState("");
   const dispatch = useDispatch();
@@ -29,10 +34,49 @@ function Imputation({ csvData }) {
   const render = useSelector((state) => state.uploadedFile.rerender);
 
   useEffect(() => {
+    if (type === "node" && initValue) {
+      console.log(initValue);
+
+      setGroupBy(initValue.group_by || []);
+      setModeData(initValue.modeData || []);
+
+      setConstant(initValue.constant || []);
+      setFillGroup(initValue.fill_group);
+      setActiveStrategy(initValue.activeStrategy);
+      setSelectColumn(initValue.select_column);
+      if (typeof csvData[0][initValue.select_column] === "number")
+        setStrategy(["mean", "median", "constant"]);
+      else setStrategy(["mode", "value"]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (type === "node") {
+      onValueChange({
+        group_by,
+        modeData,
+        activeStrategy,
+        constant,
+        fill_group,
+        select_column,
+        strategy,
+      });
+    }
+  }, [
+    group_by,
+    modeData,
+    activeStrategy,
+    constant,
+    fill_group,
+    select_column,
+    strategy,
+  ]);
+
+  useEffect(() => {
     setImputationNotExist(true);
     setNullVar([]);
     setStrategy(null);
-    setActiveStrategy();
+    // setActiveStrategy();
 
     const fetchData = async () => {
       const res = await fetch("http://127.0.0.1:8000/api/imputation_data1", {
@@ -47,13 +91,20 @@ function Imputation({ csvData }) {
 
       const data = await res.json();
       // console.log(data);
-      if (!data.null_var || data.null_var.length === 0)
+      if ((!data.null_var || data.null_var.length === 0) && type === "function")
         setImputationNotExist(true);
       else setImputationNotExist(false);
       setNullVar(data.null_var);
+
+      if (select_column) {
+        if (typeof csvData[0][select_column] === "number")
+          setStrategy(["mean", "median", "constant"]);
+        else setStrategy(["mode", "value"]);
+
+      }
     };
     fetchData();
-  }, [csvData]);
+  }, [csvData, select_column]);
 
   const handleSave = async () => {
     const res = await fetch("http://127.0.0.1:8000/api/imputation_result", {
@@ -105,7 +156,7 @@ function Imputation({ csvData }) {
     dispatch(setReRender(!render));
   };
 
-  const handleSelectColumn = async (e) => {
+  async function handleSelectColumn(e) {
     if (typeof csvData[0][e] === "number")
       setStrategy(["mean", "median", "constant"]);
     else setStrategy(["mode", "value"]);
@@ -123,11 +174,11 @@ function Imputation({ csvData }) {
     });
 
     const data = await res.json();
-    console.log(data);
+    // console.log(data);
 
     setGroupBy(data.group_by);
-    setModeData(Object.values(data.mode));
-  };
+    if (data.mode) setModeData(Object.values(data.mode));
+  }
 
   if (imputationNotExist)
     return (
@@ -142,9 +193,12 @@ function Imputation({ csvData }) {
           <SingleDropDown
             columnNames={nullVar}
             onValueChange={(e) => handleSelectColumn(e)}
+            initValue={select_column}
           />
         </div>
-        <Checkbox label="Add to pipeline" color="success" />
+        {type === "function" && (
+          <Checkbox label="Add to pipeline" color="success" />
+        )}
       </div>
       <div className="">
         <p>Strategy</p>
@@ -154,6 +208,7 @@ function Imputation({ csvData }) {
             setActiveStrategy(e);
             setConstant();
           }}
+          initValue={activeStrategy}
         />
       </div>
 
@@ -174,6 +229,7 @@ function Imputation({ csvData }) {
               <SingleDropDown
                 columnNames={group_by}
                 onValueChange={setFillGroup}
+                initValue={fill_group}
               />
             </div>
           )}
@@ -230,36 +286,38 @@ function Imputation({ csvData }) {
         </div>
       )}
 
-      <div className="mt-4 flex flex-col gap-4">
-        <Checkbox
-          color="success"
-          onChange={(e) => {
-            setSavedAsNewDataset(e.valueOf());
-            dispatch(setSaveAsNew(e.valueOf()));
-          }}
-        >
-          Save as New Dataset
-        </Checkbox>
-        {savedAsNewDataset && (
-          <div>
-            <Input
-              label="New Dataset Name"
-              fullWidth
-              clearable
-              value={dataset_name}
-              onChange={(e) => {
-                setDatasetName(e.target.value);
-              }}
-            />
-          </div>
-        )}
-        <button
-          className="self-start border-2 px-6 tracking-wider bg-primary-btn text-white font-medium rounded-md py-2"
-          onClick={handleSave}
-        >
-          Save
-        </button>
-      </div>
+      {type === "function" && (
+        <div className="mt-4 flex flex-col gap-4">
+          <Checkbox
+            color="success"
+            onChange={(e) => {
+              setSavedAsNewDataset(e.valueOf());
+              dispatch(setSaveAsNew(e.valueOf()));
+            }}
+          >
+            Save as New Dataset
+          </Checkbox>
+          {savedAsNewDataset && (
+            <div>
+              <Input
+                label="New Dataset Name"
+                fullWidth
+                clearable
+                value={dataset_name}
+                onChange={(e) => {
+                  setDatasetName(e.target.value);
+                }}
+              />
+            </div>
+          )}
+          <button
+            className="self-start border-2 px-6 tracking-wider bg-primary-btn text-white font-medium rounded-md py-2"
+            onClick={handleSave}
+          >
+            Save
+          </button>
+        </div>
+      )}
     </div>
   );
 }
