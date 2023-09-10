@@ -2,6 +2,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { Dialog } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { Input } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
 import { useReactFlow } from "reactflow";
 import SingleDropDown from "../../../FunctionBased/Components/SingleDropDown/SingleDropDown";
@@ -25,6 +26,7 @@ function UpdateMergeDatasetNode({
   const [how, setHow] = useState();
   const [leftDataframeValue, setLeftDataframeValue] = useState();
   const [rightDataframeValue, setRightDataframeValue] = useState();
+  const [dataset_name, setDatasetName] = useState("");
 
   useEffect(() => {
     const data = nodeDetails.data;
@@ -32,6 +34,7 @@ function UpdateMergeDatasetNode({
       setHow(data.merge["how"]);
       setLeftDataframeValue(data.merge["left_dataframe"]);
       setRightDataframeValue(data.merge["right_dataframe"]);
+      setDatasetName(data.merge["dataset_name"]);
     }
   }, [nodeDetails]);
 
@@ -46,6 +49,7 @@ function UpdateMergeDatasetNode({
           how,
           left_dataframe: leftDataframeValue,
           right_dataframe: rightDataframeValue,
+          dataset_name
         },
       },
     };
@@ -97,6 +101,15 @@ function UpdateMergeDatasetNode({
             columnNames={rightDataframe}
             onValueChange={setRightDataframeValue}
             initValue={rightDataframeValue}
+          />
+        </div>
+        <div>
+          <Input
+            label="New Dataset Name"
+            fullWidth
+            clearable
+            value={dataset_name}
+            onChange={(e) => setDatasetName(e.target.value)}
           />
         </div>
       </div>

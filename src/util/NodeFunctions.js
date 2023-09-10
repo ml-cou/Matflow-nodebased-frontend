@@ -41,7 +41,10 @@ export const handleOutputTable = async (rflow, params) => {
 
     const tempNodes = rflow.getNodes().map((val) => {
       if (val.id === params.target)
-        return { ...val, data: { table: csvFile.table } };
+        return {
+          ...val,
+          data: { table: csvFile.table, file_name: csvFile.file_name },
+        };
       return val;
     });
     rflow.setNodes(tempNodes);
@@ -943,7 +946,7 @@ export const handleImputationInit = async (rflow, params) => {
 
 export const handleImputation = async (rflow, params) => {
   try {
-    let {table, imputation } = rflow.getNode(params.source).data;
+    let { table, imputation } = rflow.getNode(params.source).data;
 
     if (!imputation) throw new Error("Check Imputation Node.");
     let url = "http://127.0.0.1:8000/api/imputation_result";
@@ -957,7 +960,10 @@ export const handleImputation = async (rflow, params) => {
       body: JSON.stringify({
         file: table,
         Select_columns: imputation.select_column,
-        strategy: imputation.activeStrategy === "mode" ? "constant" : imputation.activeStrategy,
+        strategy:
+          imputation.activeStrategy === "mode"
+            ? "constant"
+            : imputation.activeStrategy,
         fill_group: imputation.fill_group,
         constant: imputation.constant,
       }),
@@ -970,6 +976,56 @@ export const handleImputation = async (rflow, params) => {
         return {
           ...val,
           data: { table: data, file_name: imputation.dataset_name },
+        };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
+
+export const handleSplitDataset = async (rflow, params) => {
+  try {
+    let { splitDataset } = rflow.getNode(params.source).data;
+
+    if (!splitDataset) throw new Error("Check Split Dataset Node.");
+    let url = "http://127.0.0.1:8000/api/split_dataset/";
+    // console.log(encoding)
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        target_variable: splitDataset.target_variable,
+        stratify: splitDataset.stratify,
+        test_size: splitDataset.test_size,
+        random_state: splitDataset.random_state,
+        shuffle: splitDataset.shuffle,
+        file: splitDataset.file,
+      }),
+    });
+
+    let data = await res.json();
+    // console.log(data);
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return {
+          ...val,
+          table: splitDataset.file,
+          data: {
+            ...data,
+            test_dataset_name: "test_" + splitDataset.testDataName,
+            train_dataset_name: "train_" + splitDataset.trainDataName,
+            splitted_dataset_name: splitDataset.splittedName,
+            whatKind: splitDataset.whatKind,
+            target_variable: splitDataset.target_variable
+          },
         };
       return val;
     });

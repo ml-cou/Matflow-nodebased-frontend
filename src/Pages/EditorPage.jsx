@@ -30,8 +30,10 @@ import InformationNode from "../NodeBased/CustomNodes/InformationNode/Informatio
 import MergeDatasetNode from "../NodeBased/CustomNodes/MergeDatasetNode/MergeDatasetNode";
 import ReverseMLNode from "../NodeBased/CustomNodes/ReverseMLNode/ReverseMLNode";
 import ScalingNode from "../NodeBased/CustomNodes/ScalingNode/ScalingNode";
+import SplitDatasetNode from "../NodeBased/CustomNodes/SplitDatasetNode/SplitDatasetNode";
 import StatisticsNode from "../NodeBased/CustomNodes/StatisticsNode/StatisticsNode";
 import TableNode from "../NodeBased/CustomNodes/TableNode/TableNode";
+import TestTrainDatasetNode from "../NodeBased/CustomNodes/TestTrainDatasetNode/TestTrainDatasetNode";
 import TimeSeriesNode from "../NodeBased/CustomNodes/TimeSeiresNode/TimeSeriesNode";
 import UploadFile from "../NodeBased/CustomNodes/UploadFile/UploadFile";
 import Sidebar from "../NodeBased/components/Sidebar/Sidebar";
@@ -56,14 +58,15 @@ import {
   handlePlotOptions,
   handleReverseML,
   handleScaling,
+  handleSplitDataset,
   handleTimeSeriesAnalysis,
   isItTimeSeriesFile,
 } from "../util/NodeFunctions";
 
 const nodeTypes = {
-  upload: UploadFile,
-  output_graph: ChartNode,
-  output_table: TableNode,
+  "Upload File": UploadFile,
+  Graph: ChartNode,
+  Table: TableNode,
   EDA: EDANode,
   ReverseML: ReverseMLNode,
   "Time Series Analysis": TimeSeriesNode,
@@ -82,12 +85,14 @@ const nodeTypes = {
   Group: GroupNode,
   Duplicate: DuplicateNode,
   Imputation: ImputationNode,
+  "Split Dataset": SplitDatasetNode,
+  "Test-Train Dataset": TestTrainDatasetNode,
 };
 
 const initialNodes = [
   {
     id: uuid(),
-    type: "upload",
+    type: "Upload File",
     position: {
       x: 100,
       y: window.innerHeight / 2 - 200,
@@ -143,7 +148,10 @@ function EditorPage() {
     const sourceNode = rflow.getNode(e[0].source);
     const targetNode = rflow.getNode(e[0].target);
 
-    if (sourceNode.type === "upload" && targetNode.type === "Merge Dataset") {
+    if (
+      sourceNode.type === "Upload File" &&
+      targetNode.type === "Merge Dataset"
+    ) {
       const tempNodes = rflow.getNodes().map((val) => {
         if (val.id === targetNode.id) {
           delete val.data[sourceNode.data.file_name];
@@ -215,8 +223,8 @@ function EditorPage() {
       }
 
       if (
-        typeSource === "upload" &&
-        (typeTarget === "output_table" ||
+        typeSource === "Upload File" &&
+        (typeTarget === "Table" ||
           typeTarget === "EDA" ||
           typeTarget === "ReverseML" ||
           typeTarget === "Add/Modify" ||
@@ -230,111 +238,119 @@ function EditorPage() {
           typeTarget === "Statistics" ||
           typeTarget === "Corelation" ||
           typeTarget === "Group" ||
-          typeTarget === "Duplicate")
+          typeTarget === "Duplicate" ||
+          typeTarget === "Split Dataset")
       ) {
         ok = await handleOutputTable(rflow, params);
       }
 
       if (
-        (typeSource === "EDA" || typeSource === "upload") &&
-        typeTarget === "output_graph"
+        (typeSource === "EDA" || typeSource === "Upload File") &&
+        typeTarget === "Graph"
       ) {
         // console.log(rflow);
         ok = await handlePlotOptions(rflow, params);
       }
 
-      if (typeSource === "ReverseML" && typeTarget === "output_table") {
+      if (typeSource === "ReverseML" && typeTarget === "Table") {
         ok = await handleReverseML(rflow, params);
       }
 
-      if (typeSource === "upload" && typeTarget === "Time Series Analysis") {
+      if (
+        typeSource === "Upload File" &&
+        typeTarget === "Time Series Analysis"
+      ) {
         ok = await isItTimeSeriesFile(rflow, params);
       }
 
-      if (
-        typeSource === "Time Series Analysis" &&
-        typeTarget === "output_graph"
-      ) {
+      if (typeSource === "Time Series Analysis" && typeTarget === "Graph") {
         ok = await handleTimeSeriesAnalysis(rflow, params);
       }
 
       if (
-        typeSource === "upload" &&
+        typeSource === "Upload File" &&
         (typeTarget === "Merge Dataset" || typeTarget === "Append Dataset")
       ) {
         ok = await handleFileForMergeDataset(rflow, params);
       }
 
-      if (typeSource === "Merge Dataset" && typeTarget === "upload") {
+      if (typeSource === "Merge Dataset" && typeTarget === "Upload File") {
         ok = await handleMergeDataset(rflow, params);
       }
 
-      if (typeSource === "Add/Modify" && typeTarget === "upload") {
+      if (typeSource === "Add/Modify" && typeTarget === "Upload File") {
         ok = await handleAddModify(rflow, params);
       }
 
-      if (typeSource === "Change Dtype" && typeTarget === "upload") {
+      if (typeSource === "Change Dtype" && typeTarget === "Upload File") {
         ok = await handleChangeDtype(rflow, params);
       }
 
-      if (typeSource === "Alter Field Name" && typeTarget === "upload") {
+      if (typeSource === "Alter Field Name" && typeTarget === "Upload File") {
         ok = await handleAlterFieldName(rflow, params);
       }
 
-      if (typeSource === "Drop Column/Rows" && typeTarget === "upload") {
+      if (typeSource === "Drop Column/Rows" && typeTarget === "Upload File") {
         ok = await handleDropRowColumn(rflow, params);
       }
 
-      if (typeSource === "Scaling" && typeTarget === "upload") {
+      if (typeSource === "Scaling" && typeTarget === "Upload File") {
         ok = await handleScaling(rflow, params);
       }
 
-      if (typeSource === "Encoding" && typeTarget === "upload") {
+      if (typeSource === "Encoding" && typeTarget === "Upload File") {
         ok = await handleEncoding(rflow, params);
       }
 
-      if (typeSource === "Cluster" && typeTarget === "output_table") {
+      if (typeSource === "Cluster" && typeTarget === "Table") {
         ok = await handleCluster(rflow, params, "table");
       }
 
-      if (typeSource === "Cluster" && typeTarget === "output_graph") {
+      if (typeSource === "Cluster" && typeTarget === "Graph") {
         ok = await handleCluster(rflow, params, "graph");
       }
 
-      if (typeSource === "Append Dataset" && typeTarget === "upload") {
+      if (typeSource === "Append Dataset" && typeTarget === "Upload File") {
         ok = await handleAppendDataset(rflow, params);
       }
 
-      if (typeSource === "Information" && typeTarget === "output_table") {
+      if (typeSource === "Information" && typeTarget === "Table") {
         ok = handleDatasetInformation(rflow, params);
       }
 
-      if (typeSource === "Statistics" && typeTarget === "output_table") {
+      if (typeSource === "Statistics" && typeTarget === "Table") {
         ok = handleDatasetStatistics(rflow, params);
       }
 
-      if (typeSource === "Corelation" && typeTarget === "output_table") {
+      if (typeSource === "Corelation" && typeTarget === "Table") {
         ok = await handleDatasetCorrelation(rflow, params, "table");
       }
 
-      if (typeSource === "Corelation" && typeTarget === "output_graph") {
+      if (typeSource === "Corelation" && typeTarget === "Graph") {
         ok = await handleDatasetCorrelation(rflow, params, "graph");
       }
 
-      if (typeSource === "Group" && typeTarget === "output_table") {
+      if (typeSource === "Group" && typeTarget === "Table") {
         ok = await handleDatasetGroup(rflow, params);
       }
 
-      if (typeSource === "Duplicate" && typeTarget === "output_table") {
+      if (typeSource === "Duplicate" && typeTarget === "Table") {
         ok = await handleDatasetDuplicate(rflow, params);
       }
 
-      if (typeSource === "upload" && typeTarget === "Imputation") {
+      if (typeSource === "Upload File" && typeTarget === "Imputation") {
         ok = await handleImputationInit(rflow, params);
       }
 
-      if (typeSource === "Imputation" && typeTarget === "upload") {
+      if (typeSource === "Imputation" && typeTarget === "Upload File") {
         ok = await handleImputation(rflow, params);
+      }
+
+      if (
+        typeSource === "Split Dataset" &&
+        typeTarget === "Test-Train Dataset"
+      ) {
+        ok = await handleSplitDataset(rflow, params);
       }
 
       if (!ok) return;
