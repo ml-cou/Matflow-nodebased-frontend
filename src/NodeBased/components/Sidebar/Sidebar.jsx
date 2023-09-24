@@ -28,7 +28,7 @@ const FEATURE_ENGINEERING = [
   {
     key: "2-0",
     label: "Add/Modify",
-    icon: <RiFileEditLine className="text-[rgba(0,0,0,0.54)]" size={"25"} />,
+    icon: <RiFileEditLine className="text-[rgba(0,0,0,0.54)]" size={"20"} />,
   },
   {
     key: "2-1",
@@ -66,7 +66,7 @@ const FEATURE_ENGINEERING = [
     key: "2-10",
     label: "Merge Dataset",
     icon: (
-      <AiOutlineMergeCells className="text-[rgba(0,0,0,0.54)]" size={"25"} />
+      <AiOutlineMergeCells className="text-[rgba(0,0,0,0.54)]" size={"20"} />
     ),
   },
   {
@@ -130,10 +130,10 @@ const MODEL_BUILDING = [
     key: "5-3",
     label: "Model Prediction",
   },
-  // {
-  //   key: "5-4",
-  //   label: "Models",
-  // },
+  {
+    key: "5-4",
+    label: "Hyper-parameter Optimization",
+  },
 ];
 
 const FUNCTION_NODES = [
@@ -150,7 +150,7 @@ const FUNCTION_NODES = [
     icon: (
       <HiOutlineDocumentReport
         className="text-[rgba(0,0,0,0.54)]"
-        size={"25"}
+        size={"20"}
       />
     ),
     children: [],
@@ -158,27 +158,27 @@ const FUNCTION_NODES = [
   {
     key: "4",
     label: "Pipeline",
-    icon: <RiFlowChart className="text-[rgba(0,0,0,0.54)]" size={"25"} />,
+    icon: <RiFlowChart className="text-[rgba(0,0,0,0.54)]" size={"20"} />,
     children: [],
   },
   {
     key: "6",
     label: "Model Deployment",
-    icon: <RxRocket className="text-[rgba(0,0,0,0.54)]" size={"25"} />,
+    icon: <RxRocket className="text-[rgba(0,0,0,0.54)]" size={"20"} />,
     children: [],
   },
   {
     key: "7",
     label: "Time Series Analysis",
     icon: (
-      <AiOutlineLineChart className="text-[rgba(0,0,0,0.54)]" size={"25"} />
+      <AiOutlineLineChart className="text-[rgba(0,0,0,0.54)]" size={"20"} />
     ),
     children: [],
   },
   {
     key: "8",
     label: "ReverseML",
-    icon: <HiOutlinePuzzle className="text-[rgba(0,0,0,0.54)]" size={"25"} />,
+    icon: <HiOutlinePuzzle className="text-[rgba(0,0,0,0.54)]" size={"20"} />,
     children: [],
   },
 ];
@@ -202,6 +202,10 @@ const IO_NODES = [
   {
     key: "0-0-4",
     label: "Test-Train Dataset",
+  },
+  {
+    key: "0-0-5",
+    label: "Model",
   },
 ];
 
