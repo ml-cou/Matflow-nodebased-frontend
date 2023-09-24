@@ -3,7 +3,6 @@ import { toast } from "react-toastify";
 import uuid from "react-uuid";
 import ReactFlow, {
   Background,
-  Controls,
   MarkerType,
   Panel,
   addEdge,
@@ -16,6 +15,7 @@ import "reactflow/dist/style.css";
 import AddModify from "../NodeBased/CustomNodes/AddModify/AddModify";
 import AlterFieldNameNode from "../NodeBased/CustomNodes/AlterFieldNameNode/AlterFieldNameNode";
 import AppendDatasetNode from "../NodeBased/CustomNodes/AppendDatasetNode/AppendDatasetNode";
+import BuildModelNode from "../NodeBased/CustomNodes/BuildModelNode/BuildModelNode";
 import ChangeDtypeNode from "../NodeBased/CustomNodes/ChangeDTypeNode/ChangeDtypeNode";
 import ChartNode from "../NodeBased/CustomNodes/ChartNode/ChartNode";
 import ClusterNode from "../NodeBased/CustomNodes/ClusterNode/ClusterNode";
@@ -25,9 +25,12 @@ import DuplicateNode from "../NodeBased/CustomNodes/DuplicateNode/DuplicateNode"
 import EDANode from "../NodeBased/CustomNodes/EDANode/EDANode";
 import EncodingNode from "../NodeBased/CustomNodes/EncodingNode/EncodingNode";
 import GroupNode from "../NodeBased/CustomNodes/GroupNode/GroupNode";
+import HyperParameterNode from "../NodeBased/CustomNodes/HyperparameterNode/HyperParameterNode";
 import ImputationNode from "../NodeBased/CustomNodes/ImputationNode/ImputationNode";
 import InformationNode from "../NodeBased/CustomNodes/InformationNode/InformationNode";
 import MergeDatasetNode from "../NodeBased/CustomNodes/MergeDatasetNode/MergeDatasetNode";
+import ModelDeploymentNode from "../NodeBased/CustomNodes/ModelDeploymentNode/ModelDeploymentNode";
+import ModelNode from "../NodeBased/CustomNodes/ModelNode/ModelNode";
 import ReverseMLNode from "../NodeBased/CustomNodes/ReverseMLNode/ReverseMLNode";
 import ScalingNode from "../NodeBased/CustomNodes/ScalingNode/ScalingNode";
 import SplitDatasetNode from "../NodeBased/CustomNodes/SplitDatasetNode/SplitDatasetNode";
@@ -36,6 +39,7 @@ import TableNode from "../NodeBased/CustomNodes/TableNode/TableNode";
 import TestTrainDatasetNode from "../NodeBased/CustomNodes/TestTrainDatasetNode/TestTrainDatasetNode";
 import TimeSeriesNode from "../NodeBased/CustomNodes/TimeSeiresNode/TimeSeriesNode";
 import UploadFile from "../NodeBased/CustomNodes/UploadFile/UploadFile";
+import Controls from "../NodeBased/components/Controls/Controls";
 import Sidebar from "../NodeBased/components/Sidebar/Sidebar";
 import {
   handleAddModify,
@@ -51,14 +55,18 @@ import {
   handleDropRowColumn,
   handleEncoding,
   handleFileForMergeDataset,
+  handleHyperParameter,
   handleImputation,
   handleImputationInit,
   handleMergeDataset,
+  handleModel,
   handleOutputTable,
   handlePlotOptions,
   handleReverseML,
   handleScaling,
   handleSplitDataset,
+  handleTestTrainDataset,
+  handleTestTrainPrint,
   handleTimeSeriesAnalysis,
   isItTimeSeriesFile,
 } from "../util/NodeFunctions";
@@ -87,6 +95,10 @@ const nodeTypes = {
   Imputation: ImputationNode,
   "Split Dataset": SplitDatasetNode,
   "Test-Train Dataset": TestTrainDatasetNode,
+  "Build Model": BuildModelNode,
+  "Hyper-parameter Optimization": HyperParameterNode,
+  Model: ModelNode,
+  "Model Deployment": ModelDeploymentNode,
 };
 
 const initialNodes = [
@@ -353,6 +365,29 @@ function EditorPage() {
         ok = await handleSplitDataset(rflow, params);
       }
 
+      if (
+        typeSource === "Test-Train Dataset" &&
+        (typeTarget === "Build Model" ||
+          typeTarget === "Hyper-parameter Optimization")
+      ) {
+        ok = await handleTestTrainDataset(rflow, params);
+      }
+
+      if (typeSource === "Test-Train Dataset" && typeTarget === "Upload File") {
+        ok = await handleTestTrainPrint(rflow, params);
+      }
+
+      if (
+        typeSource === "Hyper-parameter Optimization" &&
+        typeTarget === "Build Model"
+      ) {
+        ok = await handleHyperParameter(rflow, params);
+      }
+
+      if (typeSource === "Build Model" && typeTarget === "Model") {
+        ok = await handleModel(rflow, params);
+      }
+
       if (!ok) return;
       setEdges((eds) => {
         const temp = {
@@ -407,7 +442,9 @@ function EditorPage() {
               Save
             </button>
           </Panel>
-          <Controls />
+          <Panel position="top-left">
+            <Controls />
+          </Panel>
         </ReactFlow>
       </div>
     </div>

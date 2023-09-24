@@ -19,7 +19,11 @@ const fetchDataFromIndexedDB = (name) => {
 
       getDataRequest.onsuccess = (event) => {
         const data = event.target.result;
-        resolve(data);
+        const dataWithoutId = data.map((innerArray) => {
+          const { id, ...rest } = innerArray;
+          return rest;
+        });
+        resolve(dataWithoutId);
       };
 
       transaction.onerror = (event) => {
@@ -59,7 +63,6 @@ const checkNameExistInIndexedDB = (name) => {
     };
   });
 };
-
 
 const storeDataInIndexedDB = (data, name) => {
   return new Promise((resolve, reject) => {
@@ -116,8 +119,8 @@ const updateDataInIndexedDB = (name, data) => {
       const objectStore = transaction.objectStore("data");
 
       // Ulta palta korle remove kore daw
-      objectStore.clear()
-      
+      objectStore.clear();
+
       transaction.onerror = (event) => {
         console.error("IndexedDB transaction error:", event.target.error);
         reject(event.target.error);
@@ -141,7 +144,6 @@ const updateDataInIndexedDB = (name, data) => {
     };
   });
 };
-
 
 const deleteIndexedDB = (name) => {
   return new Promise((resolve, reject) => {
@@ -260,5 +262,5 @@ export {
   parseCsv,
   parseExcel,
   storeDataInIndexedDB,
-  updateDataInIndexedDB
+  updateDataInIndexedDB,
 };

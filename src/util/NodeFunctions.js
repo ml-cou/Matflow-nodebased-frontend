@@ -15,6 +15,46 @@ const EDA_LINK = {
   "Violin Plot": "eda_violinplot",
 };
 
+const CROSS_VALID = [
+  "Linear Regression",
+  "Ridge Regression",
+  "Lasso Regression",
+  "Decision Tree Regression",
+  "Random Forest Regression",
+  "Support Vector Regressor",
+  "K-Nearest Neighbors",
+  "Support Vector Machine",
+  "Logistic Regression",
+  "Decision Tree Classification",
+  "Random Forest Classification",
+  "Multilayer Perceptron",
+];
+const RANDOM_STATE = [
+  "Linear Regression",
+  "Ridge Regression",
+  "Lasso Regression",
+  "Decision Tree Regression",
+  "Random Forest Regression",
+  "K-Nearest Neighbors",
+  "Support Vector Machine",
+  "Logistic Regression",
+  "Decision Tree Classification",
+  "Random Forest Classification",
+  "Multilayer Perceptron",
+];
+const ITER = [
+  "Ridge Regression",
+  "Lasso Regression",
+  "Decision Tree Regression",
+  "Random Forest Regression",
+  "K-Nearest Neighbors",
+  "Support Vector Machine",
+  "Logistic Regression",
+  "Decision Tree Classification",
+  "Random Forest Classification",
+  "Multilayer Perceptron",
+];
+
 const raiseErrorToast = (rflow, params, error) => {
   // Error paile connected node er data delete kore dibe
   const tempNodes = rflow.getNodes().map((val) => {
@@ -1017,20 +1057,205 @@ export const handleSplitDataset = async (rflow, params) => {
       if (val.id === params.target)
         return {
           ...val,
-          table: splitDataset.file,
           data: {
+            ...val.data,
             ...data,
             test_dataset_name: "test_" + splitDataset.testDataName,
             train_dataset_name: "train_" + splitDataset.trainDataName,
             splitted_dataset_name: splitDataset.splittedName,
             whatKind: splitDataset.whatKind,
-            target_variable: splitDataset.target_variable
+            target_variable: splitDataset.target_variable,
+            table: splitDataset.file,
           },
         };
       return val;
     });
     rflow.setNodes(tempNodes);
 
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
+
+export const handleTestTrainPrint = async (rflow, params) => {
+  let testTrain = rflow.getNode(params.source).data;
+  const edgeId = params.sourceHandle;
+
+  const tempNodes = rflow.getNodes().map((val) => {
+    if (val.id === params.target)
+      return {
+        ...val,
+        data: {
+          ...val.data,
+          table: edgeId === "test" ? testTrain.test : testTrain.train,
+          file_name:
+            edgeId === "test"
+              ? testTrain.test_dataset_name
+              : testTrain.train_dataset_name,
+        },
+      };
+    return val;
+  });
+  rflow.setNodes(tempNodes);
+
+  return true;
+};
+
+export const handleTestTrainDataset = async (rflow, params) => {
+  try {
+    let testTrain = rflow.getNode(params.source).data;
+
+    if (!testTrain) throw new Error("Check Test-Train Dataset Node.");
+    if (rflow.getNode(params.target).type === "Hyper-parameter Optimization") {
+      if (!testTrain.regressor)
+        throw new Error("Check Test-Train Dataset Node.");
+    }
+
+    let hyper = {};
+
+    if (ITER.includes(testTrain.regressor))
+      hyper["Number of iterations for hyperparameter search"] = 2;
+    if (CROSS_VALID.includes(testTrain.regressor))
+      hyper["Number of cross-validation folds"] = 2;
+    if (RANDOM_STATE.includes(testTrain.regressor))
+      hyper["Random state for hyperparameter search"] = 2;
+
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return {
+          ...val,
+          data: { testTrain, hyper },
+        };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
+
+export const handleHyperParameter = async (rflow, params) => {
+  try {
+    let { hyper, testTrain } = rflow.getNode(params.source).data;
+
+    if (!hyper) throw new Error("Check Hyperparameter Optimization Node.");
+
+    if (!ITER.includes(testTrain.regressor))
+      delete hyper["Number of iterations for hyperparameter search"];
+    if (!CROSS_VALID.includes(testTrain.regressor))
+      delete hyper["Number of cross-validation folds"];
+    if (!RANDOM_STATE.includes(testTrain.regressor))
+      delete hyper["Random state for hyperparameter search"];
+
+    // console.log({ hyper }, testTrain.regressor);
+
+    if (
+      Object.values(hyper).length !==
+      ITER.includes(testTrain.regressor) +
+        RANDOM_STATE.includes(testTrain.regressor) +
+        CROSS_VALID.includes(testTrain.regressor)
+    )
+      return false;
+
+    // console.log("first");
+
+    const res = await fetch(
+      "http://127.0.0.1:8000/api/hyperparameter_optimization/",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          train: testTrain.train,
+          test: testTrain.test,
+          [testTrain.whatKind === "Continuous" ? "regressor" : "classifier"]:
+            testTrain.regressor,
+          type:
+            testTrain.whatKind === "Continuous" ? "regressor" : "classifier",
+          target_var: testTrain.target_variable,
+          ...hyper,
+        }),
+      }
+    );
+    const data = await res.json();
+    let tmp = data.param;
+    if (testTrain.whatKind !== "Continuous") {
+      tmp = { ...tmp, "Multiclass Average": "micro" };
+    }
+    // console.log({ data, hyper });
+    // console.log(testTrain);
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return {
+          ...val,
+          data: { ...val.data, hyper: tmp, testTrain },
+        };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
+
+export const handleModel = async (rflow, params) => {
+  try {
+    let { testTrain, hyper } = rflow.getNode(params.source).data;
+    if (!testTrain || !hyper) throw new Error("Check Build Model Node");
+
+    console.log({
+      train: testTrain.train,
+      test: testTrain.test,
+      [testTrain.whatKind === "Continuous" ? "regressor" : "classifier"]:
+        testTrain.regressor,
+      type: testTrain.whatKind === "Continuous" ? "regressor" : "classifier",
+      target_var: testTrain.target_variable,
+      ...hyper,
+      file: testTrain.table,
+    });
+
+    const res = await fetch("http://127.0.0.1:8000/api/build_model/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        train: testTrain.train,
+        test: testTrain.test,
+        [testTrain.whatKind === "Continuous" ? "regressor" : "classifier"]:
+          testTrain.regressor,
+        type: testTrain.whatKind === "Continuous" ? "regressor" : "classifier",
+        target_var: testTrain.target_variable,
+        ...hyper,
+        file: testTrain.table,
+      }),
+    });
+    const data = await res.json();
+
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return {
+          ...val,
+          data: {
+            ...val.data,
+            model: {
+              name: testTrain.model_name,
+              ...data,
+            },
+          },
+        };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
     return true;
   } catch (error) {
     raiseErrorToast(rflow, params, error.message);

@@ -12,10 +12,6 @@ export const FeatureEngineeringSlice = createSlice({
     save_as_new: false,
     dataset_name: "",
     file: [],
-    feature_selection: {
-      data_type: "",
-      target_variable: "",
-    },
   },
   reducers: {
     setOption: (state, { payload }) => {
@@ -45,9 +41,6 @@ export const FeatureEngineeringSlice = createSlice({
     setSelectColumn: (state, { payload }) => {
       state.select_column = payload;
     },
-    setFeatureSelection: (state, { payload }) => {
-      state.feature_selection = payload;
-    },
   },
 });
 
@@ -62,7 +55,6 @@ export const {
   setDatasetName,
   setFile,
   setSelectColumn,
-  setFeatureSelection,
 } = FeatureEngineeringSlice.actions;
 
 export default FeatureEngineeringSlice.reducer;
