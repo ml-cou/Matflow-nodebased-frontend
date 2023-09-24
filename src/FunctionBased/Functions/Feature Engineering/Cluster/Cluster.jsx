@@ -74,7 +74,7 @@ function Cluster({
         }),
       });
       let Data = await res.json();
-      // console.log({ Data, display_type });
+      
       setGraphTableData(Data);
     } catch (error) {
       toast.error("Something went wrong. Please try again", {

@@ -44,15 +44,6 @@ function Encoding({
     }
   }, []);
 
-  // useEffect(() => {
-  //   if (method === Method[0]) {
-  //     let temp = csvData.map((val) => val[stringColumn]);
-  //     temp = new Set(temp);
-  //     temp = [...temp];
-  //     setStringValues(temp);
-  //   }
-  // }, [method, stringColumn, csvData]);
-
   useEffect(() => {
     if (type === "node") {
       onValueChange({
@@ -80,7 +71,7 @@ function Encoding({
       let Data = await res.json();
 
       let fileName = activeCsvFile.name;
-      // console.log(featureData)
+     
 
       const uploadedFiles = JSON.parse(localStorage.getItem("uploadedFiles"));
       const fileExist = uploadedFiles.filter((val) => val.name === fileName);

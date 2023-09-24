@@ -47,7 +47,6 @@ function ReverseML({ csvData }) {
           return params.data[val];
         },
       }));
-      console.log(temp);
       setColumnDef(temp);
     } catch (error) {
       console.log(error);

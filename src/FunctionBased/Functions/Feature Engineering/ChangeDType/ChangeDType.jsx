@@ -2,13 +2,13 @@ import { Checkbox, Input } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import SingleDropDown from "../../../Components/SingleDropDown/SingleDropDown";
 import { setFile } from "../../../../Slices/FeatureEngineeringSlice";
 import { setReRender } from "../../../../Slices/UploadedFileSlice";
 import {
   fetchDataFromIndexedDB,
   updateDataInIndexedDB,
 } from "../../../../util/indexDB";
+import SingleDropDown from "../../../Components/SingleDropDown/SingleDropDown";
 
 function ChangeDType({ csvData }) {
   const dispatch = useDispatch();
@@ -61,7 +61,6 @@ function ChangeDType({ csvData }) {
       let Data = await res.json();
 
       let fileName = activeCsvFile.name;
-      // console.log(featureData)
 
       const uploadedFiles = JSON.parse(localStorage.getItem("uploadedFiles"));
       const fileExist = uploadedFiles.filter((val) => val.name === fileName);

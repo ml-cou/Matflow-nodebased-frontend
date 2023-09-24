@@ -1,26 +1,57 @@
 import styled from "@emotion/styled";
 import { Slider, Stack } from "@mui/material";
-import React, { useState } from "react";
+import { Checkbox } from "@nextui-org/react";
+import React, { useEffect, useState } from "react";
+import Plot from "react-plotly.js";
 import { useSelector } from "react-redux";
+import NextTable from "../../../../Components/NextTable/NextTable";
 import SingleDropDown from "../../../../Components/SingleDropDown/SingleDropDown";
 
 function SelectKBest({ csvData }) {
-  const allNumberColumn = Object.keys(csvData[0]).filter(
-    (val) => typeof csvData[0][val] === "number"
+  const allNumberColumn = Object.keys(csvData[0]);
+  const method = useSelector((state) => state.featureSelection.method);
+  const d_type = useSelector((state) => state.featureSelection.data_type);
+  const target_var = useSelector(
+    (state) => state.featureSelection.target_variable
   );
-  const featureSelection = useSelector(
-    (state) => state.featureEngineering.feature_selection
+  const [best_Kfeature, setBestKFeature] = useState(1);
+  const [score_func, setScoreFunction] = useState(
+    d_type === "number" ? "f_regression" : "f_classif"
   );
-  const [feature_number, setFeatureNumber] = useState(1);
-  const [score_function, setScoreFunction] = useState(
-    featureSelection.data_type === "number" ? "f_regression" : "f_classif"
-  );
-  const [display_type, setDisplayType] = useState("Table");
+  const [show_graph, setShowGraph] = useState(false);
+  const [data, setData] = useState();
+
+  useEffect(() => {
+    if (method === "SelectKBest") {
+      (async function () {
+        const res = await fetch(
+          "http://127.0.0.1:8000/api/feature_selection/",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              method,
+              best_Kfeature,
+              score_func,
+              target_var,
+              dataset: csvData,
+            }),
+          }
+        );
+
+        const Data = await res.json();
+        
+        setData(Data.selected_features);
+      })();
+    }
+  }, [method, best_Kfeature, score_func, target_var, csvData]);
 
   return (
     <div className="mt-4">
-      <div className="flex items-center gap-8">
-        <div className="w-full">
+      <div className="grid grid-cols-4 gap-8">
+        <div className="col-span-3">
           <p>Select number of features to keep:</p>
           <div className="mt-12">
             <Stack
@@ -33,39 +64,78 @@ function SelectKBest({ csvData }) {
               <PrettoSlider
                 aria-label="Auto Bin Slider"
                 min={1}
-                max={allNumberColumn.length}
+                max={allNumberColumn.length - 1}
                 step={1}
                 defaultValue={1}
-                value={feature_number}
-                onChange={(e) => setFeatureNumber(e.target.value)}
+                value={best_Kfeature}
+                onChange={(e) => setBestKFeature(e.target.value)}
                 valueLabelDisplay="on"
                 color="primary"
               />
-              <span>{allNumberColumn.length}</span>
+              <span>{allNumberColumn.length - 1}</span>
             </Stack>
           </div>
         </div>
-        <div className="w-full">
-          <p>Select Score Function:</p>
-          <SingleDropDown
-            columnNames={
-              featureSelection.data_type === "number"
-                ? ["f_regression", "mutual_info_regression"]
-                : ["f_classif", "mutual_info_classif"]
-            }
-            initValue={score_function}
-            onValueChange={setScoreFunction}
+        <div>
+          <div>
+            <p>Select Score Function:</p>
+            <SingleDropDown
+              columnNames={
+                d_type === "number"
+                  ? ["f_regression", "mutual_info_regression"]
+                  : ["f_classif", "mutual_info_classif"]
+              }
+              initValue={score_func}
+              onValueChange={setScoreFunction}
+            />
+          </div>
+          <Checkbox
+            label="Show Graph"
+            className="mt-4"
+            color="success"
+            isSelected={show_graph}
+            onChange={(e) => setShowGraph(e.valueOf())}
           />
         </div>
       </div>
-      {featureSelection.data_type === "string" && (
-        <div className="mt-4">
-          <p>Display Type</p>
-          <SingleDropDown
-            columnNames={["Graph", "Table"]}
-            initValue={"Table"}
-            onValueChange={setDisplayType}
-          />
+      {data && (
+        <div className="mt-8">
+          <div>
+            <h3 className="font-medium text-lg mb-1">
+              Selected Features and Scores:{" "}
+            </h3>
+            <NextTable rowData={data.selected_features} />
+          </div>
+          {show_graph && data.graph_data && data.graph_data.bar_plot && (
+            <div className="flex justify-center mt-4">
+              <Plot
+                data={JSON.parse(data.graph_data.bar_plot).data}
+                layout={{
+                  ...JSON.parse(data.graph_data.bar_plot).layout,
+                  showlegend: true,
+                }}
+                config={{
+                  editable: true,
+                  responsive: true,
+                }}
+              />
+            </div>
+          )}
+          {show_graph && data.graph_data && data.graph_data.scatter_plot && (
+            <div className="flex justify-center mt-4">
+              <Plot
+                data={JSON.parse(data.graph_data.scatter_plot).data}
+                layout={{
+                  ...JSON.parse(data.graph_data.scatter_plot).layout,
+                  showlegend: true,
+                }}
+                config={{
+                  editable: true,
+                  responsive: true,
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

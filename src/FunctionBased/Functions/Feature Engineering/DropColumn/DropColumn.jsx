@@ -84,7 +84,6 @@ function DropColumn({
         fileName = featureData.dataset_name;
       }
 
-      // console.log(featureData)
 
       const uploadedFiles = JSON.parse(localStorage.getItem("uploadedFiles"));
       const fileExist = uploadedFiles.filter((val) => val.name === fileName);

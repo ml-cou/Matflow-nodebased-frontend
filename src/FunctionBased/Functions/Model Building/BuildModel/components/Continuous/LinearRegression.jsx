@@ -15,7 +15,13 @@ const DISPLAY_METRICES = [
   "Root Mean Squared Error",
 ];
 
-function LinearRegression({ train, test }) {
+function LinearRegression({
+  train,
+  test,
+  Type = "function",
+  initValue = undefined,
+  onValueChange = undefined,
+}) {
   const hyperparameterOption = useSelector(
     (state) => state.modelBuilding.hyperparameter
   );
@@ -34,7 +40,20 @@ function LinearRegression({ train, test }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (Type === "node" && initValue) {
+      // console.log(initValue)
+      setOptimizedData({
+        ...optimizedData,
+        ...initValue,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
     dispatch(setModelSetting(optimizedData));
+    if (Type === "node") {
+      onValueChange(optimizedData);
+    }
   }, [dispatch, optimizedData]);
 
   const handleOptimization = async () => {
@@ -57,6 +76,7 @@ function LinearRegression({ train, test }) {
           }),
         }
       );
+      
       const data = await res.json();
       setHData(data);
       setOptimizedData({ ...optimizedData, ...data.param });
@@ -68,76 +88,87 @@ function LinearRegression({ train, test }) {
 
   return (
     <div>
-      <div>
-        <h1 className="text-2xl font-medium tracking-wide mb-2">
-          Hyperparameter Optimization Settings
-        </h1>
-        <div className="flex gap-8">
-          <div className="flex flex-1 flex-col gap-4 justify-center">
-            <div className="w-full">
-              <p className="mb-1">Number of cross-validation folds</p>
-              <Input
-                onChange={(e) =>
-                  dispatch(
-                    setHyperparameterData({
-                      ...hyperparameterOption,
-                      "Number of cross-validation folds": e.target.value,
-                    })
-                  )
-                }
-                fullWidth
-                bordered
-                color="success"
-                type="number"
-              />
-            </div>
-            <div className="w-full">
-              <p className="mb-1">Random state for hyperparameter search</p>
-              <Input
-                onChange={(e) =>
-                  dispatch(
-                    setHyperparameterData({
-                      ...hyperparameterOption,
-                      "Random state for hyperparameter search": e.target.value,
-                    })
-                  )
-                }
-                fullWidth
-                bordered
-                color="success"
-                type="number"
-              />
-            </div>
-          </div>
-          <div className="flex-1">
-            {hData && hData.result && (
-              <>
-                <p className="mb-2 font-medium tracking-wide">Best Estimator</p>
-                <NextTable rowData={hData.result} />
-              </>
-            )}
-            {loading && (
-              <div className="grid place-content-center h-full">
-                <Loading size="lg" color={"success"}>
-                  Fetching Data...
-                </Loading>
+      {Type === "function" && (
+        <div>
+          <h1 className="text-2xl font-medium tracking-wide mb-2">
+            Hyperparameter Optimization Settings
+          </h1>
+          <div className="flex gap-8">
+            <div className="flex flex-1 flex-col gap-4 justify-center">
+              <div className="w-full">
+                <p className="mb-1">Number of cross-validation folds</p>
+                <Input
+                  onChange={(e) =>
+                    dispatch(
+                      setHyperparameterData({
+                        ...hyperparameterOption,
+                        "Number of cross-validation folds": e.target.value,
+                      })
+                    )
+                  }
+                  fullWidth
+                  bordered
+                  color="success"
+                  type="number"
+                />
               </div>
-            )}
+              <div className="w-full">
+                <p className="mb-1">Random state for hyperparameter search</p>
+                <Input
+                  onChange={(e) =>
+                    dispatch(
+                      setHyperparameterData({
+                        ...hyperparameterOption,
+                        "Random state for hyperparameter search":
+                          e.target.value,
+                      })
+                    )
+                  }
+                  fullWidth
+                  bordered
+                  color="success"
+                  type="number"
+                />
+              </div>
+            </div>
+            <div className="flex-1">
+              {hData && hData.result && (
+                <>
+                  <p className="mb-2 font-medium tracking-wide">
+                    Best Estimator
+                  </p>
+                  <NextTable rowData={hData.result} />
+                </>
+              )}
+              {loading && (
+                <div className="grid place-content-center h-full">
+                  <Loading size="lg" color={"success"}>
+                    Fetching Data...
+                  </Loading>
+                </div>
+              )}
+            </div>
           </div>
+          <button
+            className="self-start border-2 px-4 tracking-wider border-primary-btn text-black font-medium text-sm rounded-md py-2 mt-6"
+            onClick={handleOptimization}
+            disabled={loading}
+          >
+            Run Optimization
+          </button>
         </div>
-        <button
-          className="self-start border-2 px-4 tracking-wider border-primary-btn text-black font-medium text-sm rounded-md py-2 mt-6"
-          onClick={handleOptimization}
-          disabled={loading}
-        >
-          Run Optimization
-        </button>
-      </div>
+      )}
       <div className="mt-8">
         <h1 className="text-2xl font-medium tracking-wide mb-3">
           Model Settings
         </h1>
-        <div className="flex items-center gap-8">
+        <div
+          className={`${
+            Type === "function"
+              ? "flex items-center gap-8"
+              : "grid grid-cols-2 gap-4"
+          }`}
+        >
           <Input
             fullWidth
             label="Number of jobs"
@@ -160,8 +191,9 @@ function LinearRegression({ train, test }) {
                 fit_intercept: e.valueOf(),
               })
             }
+            size={Type === "node" ? "sm" : "md"}
             color="success"
-            className="w-[30%]"
+            className={`${Type === "node" ? "w-full" : "w-[30%]"}`}
           >
             Fit Intercept
           </Checkbox>

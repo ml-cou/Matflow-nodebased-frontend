@@ -10,7 +10,6 @@ function DatasetStatistics({ csvData }) {
   useEffect(() => {
     if (activeCsvFile && activeCsvFile.name) {
       const fetchCSVData = async () => {
-        // const res = await fetchDataFromIndexedDB(activeCsvFile.name);
         setColumnStats(calculateColumnStats(csvData));
       };
       fetchCSVData();

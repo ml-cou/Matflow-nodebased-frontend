@@ -1,7 +1,10 @@
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import {
+  setFeatureSelection,
+  setMethodFeatureSelection,
+} from "../../../../Slices/FeatureSelectionSlice";
 import SingleDropDown from "../../../Components/SingleDropDown/SingleDropDown";
-import { setFeatureSelection } from "../../../../Slices/FeatureEngineeringSlice";
 import BestOverallFeature from "./components/BestOverallFeature";
 import MutualInformation from "./components/MutualInformation";
 import ProgressiveFeature from "./components/ProgressiveFeature";
@@ -29,6 +32,7 @@ function FeatureSelection({ csvData }) {
           onValueChange={(e) => {
             setTargetVariable(e);
             setSelectionMethod(SELECTION_METHOD[0]);
+            dispatch(setMethodFeatureSelection(SELECTION_METHOD[0]));
             dispatch(
               setFeatureSelection({
                 target_variable: e,
@@ -43,21 +47,24 @@ function FeatureSelection({ csvData }) {
           <p>Select feature selection method:</p>
           <SingleDropDown
             columnNames={SELECTION_METHOD}
-            initValue={SELECTION_METHOD[0]}
-            onValueChange={setSelectionMethod}
+            initValue={selection_method}
+            onValueChange={(e) => {
+              setSelectionMethod(e);
+              dispatch(setMethodFeatureSelection(e));
+            }}
           />
         </div>
       )}
-      {selection_method === SELECTION_METHOD[0] && (
+      {target_variable && selection_method === SELECTION_METHOD[0] && (
         <BestOverallFeature csvData={csvData} />
       )}
-      {selection_method === SELECTION_METHOD[1] && (
+      {target_variable && selection_method === SELECTION_METHOD[1] && (
         <SelectKBest csvData={csvData} />
       )}
-      {selection_method === SELECTION_METHOD[2] && (
+      {target_variable && selection_method === SELECTION_METHOD[2] && (
         <MutualInformation csvData={csvData} />
       )}
-      {selection_method === SELECTION_METHOD[3] && (
+      {target_variable && selection_method === SELECTION_METHOD[3] && (
         <ProgressiveFeature csvData={csvData} />
       )}
     </div>

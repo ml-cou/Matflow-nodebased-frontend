@@ -11,7 +11,13 @@ import SingleDropDown from "../../../../../Components/SingleDropDown/SingleDropD
 
 const DISPLAY_METRICES = ["Accuracy", "Precision", "Recall", "F1-Score"];
 
-function LogisticRegression({ train, test }) {
+function LogisticRegression({
+  train,
+  test,
+  Type = "function",
+  initValue = undefined,
+  onValueChange = undefined,
+}) {
   const hyperparameterOption = useSelector(
     (state) => state.modelBuilding.hyperparameter
   );
@@ -34,7 +40,19 @@ function LogisticRegression({ train, test }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (Type === "node" && initValue) {
+      setOptimizedData({
+        ...optimizedData,
+        ...initValue,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
     dispatch(setModelSetting(optimizedData));
+    if (Type === "node") {
+      onValueChange(optimizedData);
+    }
   }, [dispatch, optimizedData]);
 
   const handleOptimization = async () => {
@@ -58,7 +76,7 @@ function LogisticRegression({ train, test }) {
         }
       );
       const data = await res.json();
-      console.log(data);
+
       setHData({ ...data, result: JSON.parse(data.result) });
       setOptimizedData({ ...optimizedData, ...data.param });
     } catch (error) {
@@ -69,96 +87,105 @@ function LogisticRegression({ train, test }) {
 
   return (
     <div>
-      <div>
-        <h1 className="text-2xl font-medium tracking-wide mb-2">
-          Hyperparameter Optimization Settings
-        </h1>
-        <div className="grid grid-cols-2 gap-8">
-          <div className="w-full flex flex-col justify-start gap-4 mt-2">
-            <div className="w-full">
-              <p className="mb-1">
-                Number of iterations for hyperparameter search
-              </p>
-              <Input
-                onChange={(e) =>
-                  dispatch(
-                    setHyperparameterData({
-                      ...hyperparameterOption,
-                      "Number of iterations for hyperparameter search":
-                        e.target.value,
-                    })
-                  )
-                }
-                fullWidth
-                bordered
-                color="success"
-                type="number"
-              />
-            </div>
-            <div className="w-full">
-              <p className="mb-1">Number of cross-validation folds</p>
-              <Input
-                onChange={(e) =>
-                  dispatch(
-                    setHyperparameterData({
-                      ...hyperparameterOption,
-                      "Number of cross-validation folds": e.target.value,
-                    })
-                  )
-                }
-                fullWidth
-                bordered
-                color="success"
-                type="number"
-              />
-            </div>
-            <div className="w-full">
-              <p className="mb-1">Random state for hyperparameter search</p>
-              <Input
-                onChange={(e) =>
-                  dispatch(
-                    setHyperparameterData({
-                      ...hyperparameterOption,
-                      "Random state for hyperparameter search": e.target.value,
-                    })
-                  )
-                }
-                fullWidth
-                bordered
-                color="success"
-                type="number"
-              />
-            </div>
-          </div>
-          <div className="w-full">
-            {hData && hData.result && (
-              <>
-                <p className="mb-2 font-medium tracking-wide">Best Estimator</p>
-                <NextTable rowData={hData.result} />
-              </>
-            )}
-            {loading && (
-              <div className="grid place-content-center h-full">
-                <Loading size="lg" color={"success"}>
-                  Fetching Data...
-                </Loading>
+      {Type === "function" && (
+        <div>
+          <h1 className="text-2xl font-medium tracking-wide mb-2">
+            Hyperparameter Optimization Settings
+          </h1>
+          <div className="grid grid-cols-2 gap-8">
+            <div className="w-full flex flex-col justify-start gap-4 mt-2">
+              <div className="w-full">
+                <p className="mb-1">
+                  Number of iterations for hyperparameter search
+                </p>
+                <Input
+                  onChange={(e) =>
+                    dispatch(
+                      setHyperparameterData({
+                        ...hyperparameterOption,
+                        "Number of iterations for hyperparameter search":
+                          e.target.value,
+                      })
+                    )
+                  }
+                  fullWidth
+                  bordered
+                  color="success"
+                  type="number"
+                />
               </div>
-            )}
+              <div className="w-full">
+                <p className="mb-1">Number of cross-validation folds</p>
+                <Input
+                  onChange={(e) =>
+                    dispatch(
+                      setHyperparameterData({
+                        ...hyperparameterOption,
+                        "Number of cross-validation folds": e.target.value,
+                      })
+                    )
+                  }
+                  fullWidth
+                  bordered
+                  color="success"
+                  type="number"
+                />
+              </div>
+              <div className="w-full">
+                <p className="mb-1">Random state for hyperparameter search</p>
+                <Input
+                  onChange={(e) =>
+                    dispatch(
+                      setHyperparameterData({
+                        ...hyperparameterOption,
+                        "Random state for hyperparameter search":
+                          e.target.value,
+                      })
+                    )
+                  }
+                  fullWidth
+                  bordered
+                  color="success"
+                  type="number"
+                />
+              </div>
+            </div>
+            <div className="w-full">
+              {hData && hData.result && (
+                <>
+                  <p className="mb-2 font-medium tracking-wide">
+                    Best Estimator
+                  </p>
+                  <NextTable rowData={hData.result} />
+                </>
+              )}
+              {loading && (
+                <div className="grid place-content-center h-full">
+                  <Loading size="lg" color={"success"}>
+                    Fetching Data...
+                  </Loading>
+                </div>
+              )}
+            </div>
           </div>
+          <button
+            className="self-start border-2 px-4 tracking-wider border-primary-btn text-black font-medium text-sm rounded-md py-2 mt-6"
+            onClick={handleOptimization}
+            disabled={loading}
+          >
+            Run Optimization
+          </button>
         </div>
-        <button
-          className="self-start border-2 px-4 tracking-wider border-primary-btn text-black font-medium text-sm rounded-md py-2 mt-6"
-          onClick={handleOptimization}
-          disabled={loading}
-        >
-          Run Optimization
-        </button>
-      </div>
+      )}
       <div className="mt-8">
         <h1 className="text-2xl font-medium tracking-wide mb-3">
           Model Settings
         </h1>
-        <div className="grid grid-cols-3 gap-8">
+        <div
+          className={`grid grid-cols-3 gap-8 ${
+            Type === "node" && "!grid-cols-2 !gap-4"
+          }`}
+        >
           <Input
             type="number"
             fullWidth
@@ -244,7 +271,7 @@ function LogisticRegression({ train, test }) {
             <p>Multiclass Average</p>
             <SingleDropDown
               columnNames={["micro", "macro", "weighted"]}
-              initValue={"micro"}
+              initValue={optimizedData["Multiclass Average"] || "micro"}
               onValueChange={(e) =>
                 setOptimizedData({ ...optimizedData, "Multiclass Average": e })
               }
@@ -256,6 +283,9 @@ function LogisticRegression({ train, test }) {
           <MultipleDropDown
             columnNames={DISPLAY_METRICES}
             defaultValue={DISPLAY_METRICES}
+            setSelectedColumns={(e) =>
+              setOptimizedData({ ...optimizedData, "Display Metrices": e })
+            }
           />
         </div>
       </div>

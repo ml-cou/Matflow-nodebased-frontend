@@ -63,10 +63,10 @@ function ModelDeployment({ csvData }) {
       let tempFilteredCol = filtered_column.map((val) => val.col);
       tempFilteredCol = new Set(tempFilteredCol);
 
-      const tempRow = dataframe.filter(
-        (val) => tempFilteredCol.has(val["Name of Features"])
+      const tempRow = dataframe.filter((val) =>
+        tempFilteredCol.has(val["Name of Features"])
       );
-      
+
       setRowDef(tempRow);
     }
   }, [dataframe, filtered_column]);

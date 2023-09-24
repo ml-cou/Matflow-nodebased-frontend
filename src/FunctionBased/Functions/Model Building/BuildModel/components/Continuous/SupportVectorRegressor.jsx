@@ -18,7 +18,13 @@ const DISPLAY_METRICES = [
 
 const KERNEL = ["linear", "rbf", "poly", "sigmoid"];
 
-function SupportVectorRegressor({ train, test }) {
+function SupportVectorRegressor({
+  train,
+  test,
+  Type = "function",
+  initValue = undefined,
+  onValueChange = undefined,
+}) {
   const hyperparameterOption = useSelector(
     (state) => state.modelBuilding.hyperparameter
   );
@@ -38,7 +44,20 @@ function SupportVectorRegressor({ train, test }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (Type === "node" && initValue) {
+      // console.log(initValue)
+      setOptimizedData({
+        ...optimizedData,
+        ...initValue,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
     dispatch(setModelSetting(optimizedData));
+    if (Type === "node") {
+      onValueChange(optimizedData);
+    }
   }, [dispatch, optimizedData]);
 
   const handleOptimization = async () => {
@@ -63,7 +82,7 @@ function SupportVectorRegressor({ train, test }) {
       );
 
       const data = await res.json();
-      console.log(data);
+      
       setHData(data);
       setOptimizedData({ ...optimizedData, ...data.param });
     } catch (error) {
@@ -74,59 +93,67 @@ function SupportVectorRegressor({ train, test }) {
 
   return (
     <div>
-      <div>
-        <h1 className="text-2xl font-medium tracking-wide mb-2">
-          Hyperparameter Optimization Settings
-        </h1>
-        <div className="grid grid-cols-2 gap-8">
-          <div className="w-full flex flex-col justify-start gap-4 mt-2">
+      {Type === "function" && (
+        <div>
+          <h1 className="text-2xl font-medium tracking-wide mb-2">
+            Hyperparameter Optimization Settings
+          </h1>
+          <div className="grid grid-cols-2 gap-8">
+            <div className="w-full flex flex-col justify-start gap-4 mt-2">
+              <div className="w-full">
+                <p className="mb-1">Number of cross-validation folds</p>
+                <Input
+                  onChange={(e) =>
+                    dispatch(
+                      setHyperparameterData({
+                        ...hyperparameterOption,
+                        "Number of cross-validation folds": e.target.value,
+                      })
+                    )
+                  }
+                  fullWidth
+                  bordered
+                  color="success"
+                  type="number"
+                />
+              </div>
+            </div>
             <div className="w-full">
-              <p className="mb-1">Number of cross-validation folds</p>
-              <Input
-                onChange={(e) =>
-                  dispatch(
-                    setHyperparameterData({
-                      ...hyperparameterOption,
-                      "Number of cross-validation folds": e.target.value,
-                    })
-                  )
-                }
-                fullWidth
-                bordered
-                color="success"
-                type="number"
-              />
+              {hData && hData.result && (
+                <>
+                  <p className="mb-2 font-medium tracking-wide">
+                    Best Estimator
+                  </p>
+                  <NextTable rowData={hData.result} />
+                </>
+              )}
+              {loading && (
+                <div className="grid place-content-center h-full">
+                  <Loading size="lg" color={"success"}>
+                    Fetching Data...
+                  </Loading>
+                </div>
+              )}
             </div>
           </div>
-          <div className="w-full">
-            {hData && hData.result && (
-              <>
-                <p className="mb-2 font-medium tracking-wide">Best Estimator</p>
-                <NextTable rowData={hData.result} />
-              </>
-            )}
-            {loading && (
-              <div className="grid place-content-center h-full">
-                <Loading size="lg" color={"success"}>
-                  Fetching Data...
-                </Loading>
-              </div>
-            )}
-          </div>
+          <button
+            className="self-start border-2 px-4 tracking-wider border-primary-btn text-black font-medium text-sm rounded-md py-2 mt-6"
+            onClick={handleOptimization}
+            disabled={loading}
+          >
+            Run Optimization
+          </button>
         </div>
-        <button
-          className="self-start border-2 px-4 tracking-wider border-primary-btn text-black font-medium text-sm rounded-md py-2 mt-6"
-          onClick={handleOptimization}
-          disabled={loading}
-        >
-          Run Optimization
-        </button>
-      </div>
+      )}
       <div className="mt-8">
         <h1 className="text-2xl font-medium tracking-wide mb-3">
           Model Settings
         </h1>
-        <div className="grid grid-cols-3 gap-8">
+        <div
+          className={`grid grid-cols-3 gap-8 ${
+            Type === "node" && "!grid-cols-2 !gap-4"
+          }`}
+        >
           <Input
             type="number"
             fullWidth

@@ -72,11 +72,9 @@ function Add_GroupCategorical({
       let temp = csvData.map((val) => val[groupColumn].toString());
       let temp1 = new Set(temp);
       temp1 = [...temp1];
-      // console.log(temp1)
       setGroupMembers(temp1);
     }
 
-    // console.log('first')
   }, [groupColumn, csvData]);
 
   const handleChange = (e, ind) => {

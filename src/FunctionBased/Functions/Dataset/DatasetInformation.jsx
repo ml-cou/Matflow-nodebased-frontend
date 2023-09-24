@@ -7,16 +7,6 @@ const DatasetInformation = ({ csvData }) => {
   // const [rowData, setRowData] = useState([]);
   const activeCsvFile = useSelector((state) => state.uploadedFile.activeFile);
 
-  // useEffect(() => {
-  //   if (activeCsvFile && activeCsvFile.name) {
-  //     const fetchCSVData = async () => {
-  //       const res = await fetchDataFromIndexedDB(activeCsvFile.name);
-  //       setRowData(res);
-  //     };
-  //     fetchCSVData();
-  //   }
-  // }, [activeCsvFile]);
-
   return (
     <div>
       <h1 className="text-3xl font-bold my-4">Dataset Information</h1>

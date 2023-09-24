@@ -45,7 +45,13 @@ const CLASSIFIER = [
   "Multilayer Perceptron",
 ];
 
-function BuildModel({ csvData }) {
+function BuildModel({
+  csvData,
+  nodeData = undefined,
+  type = "function",
+  initValue = undefined,
+  onValueChange = undefined,
+}) {
   // const [regressor, setRegressor] = useState(Regressor[0]);
   const [allRegressor, setAllRegressor] = useState();
   const [regressor, setRegressor] = useState();
@@ -60,7 +66,7 @@ function BuildModel({ csvData }) {
   const model_setting = useSelector(
     (state) => state.modelBuilding.model_setting
   );
-  const type = useSelector((state) => state.modelBuilding.type);
+  const Type = useSelector((state) => state.modelBuilding.type);
   const target_variable = useSelector(
     (state) => state.modelBuilding.target_variable
   );
@@ -78,6 +84,31 @@ function BuildModel({ csvData }) {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (type === "node" && nodeData) {
+      setWhatKind(nodeData.whatKind);
+      if (nodeData.whatKind === "Continuous") {
+        setAllRegressor(REGRESSOR);
+        setRegressor(nodeData.regressor || REGRESSOR[0]);
+        dispatch(setReg(nodeData.regressor || REGRESSOR[0]));
+        dispatch(setType("regressor"));
+        setModelName(nodeData.model_name || "LR_Regression");
+      } else {
+        setAllRegressor(CLASSIFIER);
+        setRegressor(nodeData.regressor || CLASSIFIER[0]);
+        dispatch(setReg(nodeData.regressor || CLASSIFIER[0]));
+        dispatch(setType("classifier"));
+        setModelName(nodeData.model_name || "KNN_Classification");
+      }
+      dispatch(setTargetVariable(nodeData.target_variable));
+      dispatch(setHyperparameterData({}));
+      dispatch(setModelSetting({}));
+      setNicherData("");
+      setTrain(nodeData.train);
+      setTest(nodeData.test);
+    }
+  }, [nodeData]);
 
   const handleDatasetChange = async (e) => {
     let tempDatasets = await fetchDataFromIndexedDB("splitted_dataset");
@@ -107,7 +138,7 @@ function BuildModel({ csvData }) {
 
         const trainData = await fetchDataFromIndexedDB(val[e][1]);
         const testData = await fetchDataFromIndexedDB(val[e][2]);
-        console.log({ trainData, testData });
+
         if (!testData || !trainData || !testData.length || !trainData.length) {
           setAllRegressor();
           toast.warn("Properly Split Dataset First.", {
@@ -140,6 +171,7 @@ function BuildModel({ csvData }) {
           }
         }
       });
+
       const res = await fetch("http://127.0.0.1:8000/api/build_model/", {
         method: "POST",
         headers: {
@@ -149,16 +181,13 @@ function BuildModel({ csvData }) {
           test,
           train,
           target_var: target_variable,
-          type,
-          [type === "regressor" ? "regressor" : "classifier"]: reg,
+          type: Type,
+          [Type === "regressor" ? "regressor" : "classifier"]: reg,
           ...model_setting,
           file: csvData,
         }),
       });
       const data = await res.json();
-      console.log(data);
-
-      
 
       // return;
       setNicherData(data.metrics);
@@ -173,7 +202,7 @@ function BuildModel({ csvData }) {
             metrics: data.metrics,
             metrics_table: data.metrics_table,
             y_pred: JSON.parse(data.y_pred),
-            type,
+            type: Type,
             regressor,
             model_deploy: data.model_deploy,
           },
@@ -185,7 +214,7 @@ function BuildModel({ csvData }) {
               metrics: data.metrics,
               metrics_table: data.metrics_table,
               y_pred: JSON.parse(data.y_pred),
-              type,
+              type: Type,
               regressor,
               model_deploy: data.model_deploy,
             },
@@ -256,97 +285,181 @@ function BuildModel({ csvData }) {
         draggable
         theme="light"
       />
-      <div>
-        <p>Select Train Test Dataset</p>
-        <SingleDropDown
-          columnNames={allDatasetName}
-          onValueChange={(e) => handleDatasetChange(e)}
-        />
-      </div>
+      {type === "function" && (
+        <div>
+          <p>Select Train Test Dataset</p>
+          <SingleDropDown
+            columnNames={allDatasetName}
+            onValueChange={(e) => handleDatasetChange(e)}
+          />
+        </div>
+      )}
       {allRegressor && (
         <>
-          <div className="flex items-center gap-8 mt-8">
-            <div className="w-full">
-              <p>{whatKind === "Continuous" ? "Regressor" : "Classifier"}</p>
-              <SingleDropDown
-                columnNames={allRegressor}
-                onValueChange={(e) => {
-                  setRegressor(e);
-                  dispatch(setReg(e));
-                  dispatch(setHyperparameterData({}));
-                  dispatch(setModelSetting({}));
-                  setNicherData("");
-                }}
-                initValue={allRegressor[0]}
-              />
+          {type === "function" && (
+            <div
+              className={`flex items-center gap-8 mt-8 ${
+                type === "node" && "flex-col !gap-4"
+              }`}
+            >
+              <div className="w-full">
+                <p>{whatKind === "Continuous" ? "Regressor" : "Classifier"}</p>
+                <SingleDropDown
+                  columnNames={allRegressor}
+                  onValueChange={(e) => {
+                    setRegressor(e);
+                    dispatch(setReg(e));
+                    dispatch(setHyperparameterData({}));
+                    dispatch(setModelSetting({}));
+                    setNicherData("");
+                  }}
+                  initValue={allRegressor[0]}
+                />
+              </div>
+              <div className="w-full">
+                <Input
+                  fullWidth
+                  label="Model Name"
+                  size="lg"
+                  value={model_name}
+                  onChange={(e) => setModelName(e.target.value)}
+                />
+              </div>
             </div>
-            <div className="w-full">
-              <Input
-                fullWidth
-                label="Model Name"
-                size="lg"
-                value={model_name}
-                onChange={(e) => setModelName(e.target.value)}
-              />
-            </div>
-          </div>
+          )}
 
           {/* Regressor (for Numerical Column) */}
 
           {whatKind && whatKind === "Continuous" ? (
-            <div className="mt-12">
+            <div className={`${type === "function" && "mt-12"}`}>
               {regressor === REGRESSOR[0] && (
-                <LinearRegression train={train} test={test} />
+                <LinearRegression
+                  train={train}
+                  test={test}
+                  Type={type}
+                  initValue={initValue}
+                  onValueChange={onValueChange}
+                />
               )}
               {regressor === REGRESSOR[1] && (
-                <RidgeRegression train={train} test={test} />
+                <RidgeRegression
+                  train={train}
+                  test={test}
+                  Type={type}
+                  initValue={initValue}
+                  onValueChange={onValueChange}
+                />
               )}
               {regressor === REGRESSOR[2] && (
-                <LassoRegression train={train} test={test} />
+                <LassoRegression
+                  train={train}
+                  test={test}
+                  Type={type}
+                  initValue={initValue}
+                  onValueChange={onValueChange}
+                />
               )}
               {regressor === REGRESSOR[3] && (
-                <DecisionTreeRegression train={train} test={test} />
+                <DecisionTreeRegression
+                  train={train}
+                  test={test}
+                  Type={type}
+                  initValue={initValue}
+                  onValueChange={onValueChange}
+                />
               )}
               {regressor === REGRESSOR[4] && (
-                <RandomForestRegression train={train} test={test} />
+                <RandomForestRegression
+                  train={train}
+                  test={test}
+                  Type={type}
+                  initValue={initValue}
+                  onValueChange={onValueChange}
+                />
               )}
               {regressor === REGRESSOR[5] && (
-                <SupportVectorRegressor train={train} test={test} />
+                <SupportVectorRegressor
+                  train={train}
+                  test={test}
+                  Type={type}
+                  initValue={initValue}
+                  onValueChange={onValueChange}
+                />
               )}
             </div>
           ) : (
-            <div className="mt-12">
+            <div className={`${type === "function" && "mt-12"}`}>
               {regressor === CLASSIFIER[0] && (
-                <KNearestNeighbour train={train} test={test} />
+                <KNearestNeighbour
+                  train={train}
+                  test={test}
+                  Type={type}
+                  initValue={initValue}
+                  onValueChange={onValueChange}
+                />
               )}
               {regressor === CLASSIFIER[1] && (
-                <SupportVectorMachine train={train} test={test} />
+                <SupportVectorMachine
+                  train={train}
+                  test={test}
+                  Type={type}
+                  initValue={initValue}
+                  onValueChange={onValueChange}
+                />
               )}
               {regressor === CLASSIFIER[2] && (
-                <LogisticRegression train={train} test={test} />
+                <LogisticRegression
+                  train={train}
+                  test={test}
+                  Type={type}
+                  initValue={initValue}
+                  onValueChange={onValueChange}
+                />
               )}
               {regressor === CLASSIFIER[3] && (
-                <DecisionTreeClassification train={train} test={test} />
+                <DecisionTreeClassification
+                  train={train}
+                  test={test}
+                  Type={type}
+                  initValue={initValue}
+                  onValueChange={onValueChange}
+                />
               )}
               {regressor === CLASSIFIER[4] && (
-                <RandomForestClassification train={train} test={test} />
+                <RandomForestClassification
+                  train={train}
+                  test={test}
+                  Type={type}
+                  initValue={initValue}
+                  onValueChange={onValueChange}
+                />
               )}
               {regressor === CLASSIFIER[5] && (
-                <MultilayerPerceptron train={train} test={test} />
+                <MultilayerPerceptron
+                  train={train}
+                  test={test}
+                  Type={type}
+                  initValue={initValue}
+                  onValueChange={onValueChange}
+                />
               )}
             </div>
           )}
 
-          <button
-            className="self-start border-2 px-6 tracking-wider bg-primary-btn text-white font-medium rounded-md py-2 mt-8"
-            onClick={handleSave}
-          >
-            Submit
-          </button>
-          {nicherData && (
-            <p className="mt-4 text-xl tracking-widest">
-              {JSON.stringify(nicherData)}
-            </p>
+          {type === "function" && (
+            <>
+              <button
+                className="self-start border-2 px-6 tracking-wider bg-primary-btn text-white font-medium rounded-md py-2 mt-8"
+                onClick={handleSave}
+              >
+                Submit
+              </button>
+              {nicherData && (
+                <p className="mt-4 text-xl tracking-widest">
+                  {JSON.stringify(nicherData)}
+                </p>
+              )}
+            </>
           )}
         </>
       )}

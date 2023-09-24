@@ -341,16 +341,7 @@ function DatasetCorrelation({ csvData }) {
                   <option value="feature_pair">Feature Pair</option>
                 </select>
               </div>
-              {/* {displayType === "heatmap" && (
-                <div className="flex flex-col gap-1 ">
-                  <Checkbox
-                    color="success"
-                    onChange={(e) => setShowAnnotate(e.valueOf())}
-                  >
-                    Annotate
-                  </Checkbox>
-                </div>
-              )} */}
+              
             </div>
           </div>
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import SingleDropDown from "../../../Components/SingleDropDown/SingleDropDown";
 import { fetchDataFromIndexedDB } from "../../../../util/indexDB";
+import SingleDropDown from "../../../Components/SingleDropDown/SingleDropDown";
 import ShowDataClassifier from "./ShowDataClassifier";
 import ShowDataRegressor from "./ShowDataRegressor";
 
@@ -96,20 +96,11 @@ function ModelPrediction({ csvData }) {
 
     res = res.map((val) => val[selectDataset]);
     res = res.filter((val) => val !== undefined && val !== null)[0][e];
-    console.log(res)
+
     setModelData(res);
   };
 
   const handleSave = async () => {
-    console.log({
-      "Target Variable": target_variable,
-      model: modelData.metrics_table,
-      // file: tempCsv,
-      Result: result,
-      y_pred: modelData.y_pred,
-      type: modelData.type,
-      regressor: modelData.regressor,
-    });
     try {
       if (result in modelData.metrics) {
         setData(modelData.metrics[result]);
@@ -134,7 +125,7 @@ function ModelPrediction({ csvData }) {
       });
 
       const Data = await res.json();
-      console.log(Data);
+
       setData(Data);
 
       if (Data.error) {
@@ -156,10 +147,6 @@ function ModelPrediction({ csvData }) {
       console.log(error);
     }
   };
-
-  // useEffect(() => {
-  //   console.log(data);
-  // }, [data]);
 
   if (!allDataset) return <div>Loading...</div>;
   if (!allModels || allModels.length === 0)

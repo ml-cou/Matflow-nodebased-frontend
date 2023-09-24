@@ -26,7 +26,6 @@ function Scaling({
 
   useEffect(() => {
     if (type === "node" && initValue) {
-      console.log(initValue);
       setOption(initValue.options || "Select Columns");
       setMethod(initValue.method || "Min-Max Scaler");
       setDefaultValue(initValue.default_value || "Blank");
@@ -45,8 +44,6 @@ function Scaling({
       }));
     }
   }, [option, method, defaultValue, selectedColumns]);
-
-  // useEffect(() => {}, [defaultValue, csvData]);
 
   const handleDefaultValue = (e) => {
     setDefaultValue(e);
@@ -84,7 +81,6 @@ function Scaling({
       let Data = await res.json();
 
       let fileName = activeCsvFile.name;
-      // console.log(featureData)
 
       const uploadedFiles = JSON.parse(localStorage.getItem("uploadedFiles"));
       const fileExist = uploadedFiles.filter((val) => val.name === fileName);

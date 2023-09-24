@@ -47,7 +47,6 @@ function MergeDataset({ csvData }) {
 
       let fileName = new_dataset_name;
 
-      // console.log(featureData)
 
       const uploadedFiles = JSON.parse(localStorage.getItem("uploadedFiles"));
       const fileExist = uploadedFiles.filter((val) => val.name === fileName);
