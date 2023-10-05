@@ -33,6 +33,7 @@ function SplitDataset({
 
   useEffect(() => {
     if (type === "node" && initValue) {
+      // console.log(initValue);
       setTargetVariable(initValue.target_variable || "");
       setStratify(initValue.stratify || "");
       setTestSize(initValue.test_size || 0.5);
@@ -64,7 +65,7 @@ function SplitDataset({
         testDataName,
         trainDataName,
         splittedName,
-        whatKind
+        whatKind,
       });
     }
   }, [
@@ -76,35 +77,53 @@ function SplitDataset({
     testDataName,
     trainDataName,
     splittedName,
-    whatKind
+    whatKind,
   ]);
 
-  useEffect(() => {
+  const handleTargetVariableChange = (e) => {
+    setTargetVariable(e);
     let file_name = activeCsvFile.name;
     if (type === "node") file_name = initValue.file_name;
-    if (target_variable) {
-      const temp =
-        typeof csvData[0][target_variable] === "number"
-          ? "Continuous"
-          : "Categorical";
-      setWhatKind(temp);
-      setTestDataName(
-        file_name +
-          "_" +
-          Object.keys(csvData[0]).filter((val) => val === target_variable)[0]
-      );
-      setTrainDataName(
-        file_name +
-          "_" +
-          Object.keys(csvData[0]).filter((val) => val === target_variable)[0]
-      );
-      setSplittedName(
-        file_name +
-          "_" +
-          Object.keys(csvData[0]).filter((val) => val === target_variable)[0]
-      );
-    }
-  }, [target_variable, csvData, activeCsvFile]);
+    const temp =
+      typeof csvData[0][e] === "number" ? "Continuous" : "Categorical";
+    setWhatKind(temp);
+    setTestDataName(
+      file_name + "_" + Object.keys(csvData[0]).filter((val) => val === e)[0]
+    );
+    setTrainDataName(
+      file_name + "_" + Object.keys(csvData[0]).filter((val) => val === e)[0]
+    );
+    setSplittedName(
+      file_name + "_" + Object.keys(csvData[0]).filter((val) => val === e)[0]
+    );
+  };
+
+  // useEffect(() => {
+  //   let file_name = activeCsvFile.name;
+  //   if (type === "node") file_name = initValue.file_name;
+  //   if (target_variable) {
+  //     const temp =
+  //       typeof csvData[0][target_variable] === "number"
+  //         ? "Continuous"
+  //         : "Categorical";
+  //     setWhatKind(temp);
+  //     setTestDataName(
+  //       file_name +
+  //         "_" +
+  //         Object.keys(csvData[0]).filter((val) => val === target_variable)[0]
+  //     );
+  //     setTrainDataName(
+  //       file_name +
+  //         "_" +
+  //         Object.keys(csvData[0]).filter((val) => val === target_variable)[0]
+  //     );
+  //     setSplittedName(
+  //       file_name +
+  //         "_" +
+  //         Object.keys(csvData[0]).filter((val) => val === target_variable)[0]
+  //     );
+  //   }
+  // }, [target_variable, csvData, activeCsvFile]);
 
   const handleSave = async () => {
     try {
@@ -212,7 +231,7 @@ function SplitDataset({
           </p>
           <SingleDropDown
             columnNames={columnNames}
-            onValueChange={setTargetVariable}
+            onValueChange={handleTargetVariableChange}
             initValue={target_variable}
           />
         </div>

@@ -146,7 +146,7 @@ function CountPlot({ csvData }) {
           <Plot
             data={plotlyData?.data}
             layout={{ ...plotlyData.layout, showlegend: true }}
-            config={{ scrollZoom: true, editable: true, responsive: true }}
+            config={{ editable: true, responsive: true }}
           />
         </div>
       )}

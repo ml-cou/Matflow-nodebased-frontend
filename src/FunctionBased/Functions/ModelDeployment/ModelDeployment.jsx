@@ -110,7 +110,12 @@ function ModelDeployment({ csvData }) {
   const handleChangeValue = (ind, value) => {
     setFilteredColumn(
       filtered_column.map((val, i) => {
-        if (i === ind) return { ...val, value };
+        if (i === ind)
+          return {
+            ...val,
+            value:
+              val.data_type === "float" ? parseFloat(value) : parseInt(value),
+          };
         return val;
       })
     );
@@ -216,7 +221,11 @@ function ModelDeployment({ csvData }) {
                       <Input
                         bordered
                         color="success"
-                        value={filtered_column[ind].value}
+                        value={
+                          filtered_column[ind].data_type === "float"
+                            ? parseFloat(filtered_column[ind].value)
+                            : parseInt(filtered_column[ind].value)
+                        }
                         onChange={(e) => handleChangeValue(ind, e.target.value)}
                         fullWidth
                         step={

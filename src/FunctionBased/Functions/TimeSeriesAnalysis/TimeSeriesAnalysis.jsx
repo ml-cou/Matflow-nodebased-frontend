@@ -219,7 +219,6 @@ function TimeSeriesAnalysis({ csvData }) {
                       showlegend: true,
                     }}
                     config={{
-                      scrollZoom: true,
                       editable: true,
                       responsive: true,
                     }}

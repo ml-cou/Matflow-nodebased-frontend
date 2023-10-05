@@ -266,7 +266,7 @@ function BuildModel({
   }, [whatKind, regressor]);
 
   if (loading) return <div>Loading...</div>;
-  if (allDatasetName.length === 0)
+  if (allDatasetName.length === 0 && type === "function")
     return (
       <div className="my-8">
         <h1 className="text-2xl font-medium">Split a dataset to continue</h1>

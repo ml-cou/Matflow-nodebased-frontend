@@ -62,6 +62,8 @@ function BestOverallFeature({ csvData }) {
 
       const Data = await res.json();
 
+      // console.log(Data)
+
       // For group data
       let selectedFeatureData =
         Data.selected_features.custom_feature_data.group.selected_features_data;
@@ -109,6 +111,17 @@ function BestOverallFeature({ csvData }) {
         tempResult4.push(tmp);
       });
 
+      console.log({
+        ...data,
+        graph_data: Data.selected_features.graph_data,
+        dropped_feature_data: tempResult,
+        selected_feature_data: tempResult1,
+        single_selected: tempResult3,
+        single_dropped: tempResult4,
+        single_graph:
+          Data.selected_features.custom_feature_data.single.graph_data,
+      });
+
       setData({
         ...data,
         graph_data: Data.selected_features.graph_data,
@@ -121,6 +134,10 @@ function BestOverallFeature({ csvData }) {
       });
     }
   };
+
+  useEffect(() => {
+    console.log(data);
+  }, [data]);
 
   return (
     <div className="mt-4">
@@ -222,34 +239,36 @@ function BestOverallFeature({ csvData }) {
           )}
           {data.graph_data && (
             <>
-              <div className="flex justify-center mt-4">
-                <Plot
-                  data={JSON.parse(data.graph_data.bar_plot).data}
-                  layout={{
-                    ...JSON.parse(data.graph_data.bar_plot).layout,
-                    showlegend: true,
-                  }}
-                  config={{
-                    scrollZoom: true,
-                    editable: true,
-                    responsive: true,
-                  }}
-                />
-              </div>
-              <div className="flex justify-center mt-4">
-                <Plot
-                  data={JSON.parse(data.graph_data.scatter_plot).data}
-                  layout={{
-                    ...JSON.parse(data.graph_data.scatter_plot).layout,
-                    showlegend: true,
-                  }}
-                  config={{
-                    scrollZoom: true,
-                    editable: true,
-                    responsive: true,
-                  }}
-                />
-              </div>
+              {data.graph_data.bar_plot && (
+                <div className="flex justify-center mt-4">
+                  <Plot
+                    data={JSON.parse(data.graph_data.bar_plot).data}
+                    layout={{
+                      ...JSON.parse(data.graph_data.bar_plot).layout,
+                      showlegend: true,
+                    }}
+                    config={{
+                      editable: true,
+                      responsive: true,
+                    }}
+                  />
+                </div>
+              )}
+              {data.graph_data.scatter_plot && (
+                <div className="flex justify-center mt-4">
+                  <Plot
+                    data={JSON.parse(data.graph_data.scatter_plot).data}
+                    layout={{
+                      ...JSON.parse(data.graph_data.scatter_plot).layout,
+                      showlegend: true,
+                    }}
+                    config={{
+                      editable: true,
+                      responsive: true,
+                    }}
+                  />
+                </div>
+              )}
               <div className="flex justify-center mt-4">
                 <Plot
                   data={data.single_graph.data}
@@ -258,7 +277,6 @@ function BestOverallFeature({ csvData }) {
                     showlegend: true,
                   }}
                   config={{
-                    scrollZoom: true,
                     editable: true,
                     responsive: true,
                   }}

@@ -108,6 +108,7 @@ function ModelPrediction({ csvData }) {
       }
       setLoading(true);
       const tempCsv = await fetchDataFromIndexedDB(select_data);
+     
       const res = await fetch("http://127.0.0.1:8000/api/model_prediction/", {
         method: "POST",
         headers: {

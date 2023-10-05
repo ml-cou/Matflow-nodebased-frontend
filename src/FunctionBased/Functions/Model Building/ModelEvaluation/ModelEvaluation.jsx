@@ -20,7 +20,6 @@ function ModelEvaluation() {
   const [graphData, setGraphData] = useState();
   const [notFound, setNotFound] = useState(false);
   const [allModelName, setAllModelName] = useState();
-  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,8 +59,9 @@ function ModelEvaluation() {
     let temp = keys.map((val) => {
       return { ...tempModels[val].metrics_table, name: val };
     });
+    console.log(temp);
     setAllModelName(temp.map((val) => val.name));
-    
+
     setColumnName(Object.keys(temp[0]));
     setFile(temp);
   };
@@ -69,6 +69,13 @@ function ModelEvaluation() {
   const handleSave = async () => {
     try {
       if (display_type === "Graph") {
+        console.log({
+          file,
+          "Display Type": display_type,
+          "Display Result": display_result,
+          "Select Orientation": orientation,
+          Columns: selectedColumn,
+        });
         const res = await fetch("http://127.0.0.1:8000/api/model_evaluation/", {
           method: "POST",
           headers: {
@@ -260,7 +267,7 @@ function ModelEvaluation() {
           <Plot
             data={graphData?.data}
             layout={{ ...graphData.layout, showlegend: true }}
-            config={{ scrollZoom: true, editable: true, responsive: true }}
+            config={{ editable: true, responsive: true }}
           />
         </div>
       )}

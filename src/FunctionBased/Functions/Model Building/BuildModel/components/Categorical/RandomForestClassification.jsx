@@ -79,7 +79,7 @@ function RandomForestClassification({
         }
       );
       const data = await res.json();
-     
+
       setHData(data);
       setOptimizedData({ ...optimizedData, ...data.param });
     } catch (error) {
@@ -181,9 +181,11 @@ function RandomForestClassification({
         </div>
       )}
       <div className="mt-8">
-        <h1 className="text-2xl font-medium tracking-wide mb-3">
-          Model Settings
-        </h1>
+        {Type === "function" && (
+          <h1 className="text-2xl font-medium tracking-wide mb-3">
+            Model Settings
+          </h1>
+        )}
         <div
           className={`grid grid-cols-3 gap-8 ${
             Type === "node" && "!grid-cols-2 !gap-4"
@@ -303,7 +305,7 @@ function RandomForestClassification({
           <p className="mb-2">Display Metrices</p>
           <MultipleDropDown
             columnNames={DISPLAY_METRICES}
-            defaultValue={optimizedData['Display Metrices'] || DISPLAY_METRICES}
+            defaultValue={optimizedData["Display Metrices"] || DISPLAY_METRICES}
             setSelectedColumns={(e) =>
               setOptimizedData({ ...optimizedData, "Display Metrices": e })
             }

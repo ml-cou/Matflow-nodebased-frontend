@@ -74,7 +74,7 @@ function Cluster({
         }),
       });
       let Data = await res.json();
-      
+
       setGraphTableData(Data);
     } catch (error) {
       toast.error("Something went wrong. Please try again", {
@@ -189,7 +189,7 @@ function Cluster({
                   ...JSON.parse(graphTableData.graph).layout,
                   showlegend: true,
                 }}
-                config={{ scrollZoom: true, editable: true, responsive: true }}
+                config={{ editable: true, responsive: true }}
               />
             </div>
           ) : (

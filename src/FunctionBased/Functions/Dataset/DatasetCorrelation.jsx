@@ -3,9 +3,9 @@ import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 import { useSelector } from "react-redux";
 import * as Stat from "statistics.js";
+import { fetchDataFromIndexedDB } from "../../../util/indexDB";
 import AgGridComponent from "../../Components/AgGridComponent/AgGridComponent";
 import FeaturePair from "../../Components/FeaturePair/FeaturePair";
-import { fetchDataFromIndexedDB } from "../../../util/indexDB";
 
 function DatasetCorrelation({ csvData }) {
   const activeCsvFile = useSelector((state) => state.uploadedFile.activeFile);
@@ -233,7 +233,7 @@ function DatasetCorrelation({ csvData }) {
           }
         );
         const data = await res.json();
-        
+
         setPlotlyData(JSON.parse(data));
       };
       fetchData();
@@ -341,7 +341,6 @@ function DatasetCorrelation({ csvData }) {
                   <option value="feature_pair">Feature Pair</option>
                 </select>
               </div>
-              
             </div>
           </div>
 
@@ -355,7 +354,6 @@ function DatasetCorrelation({ csvData }) {
                     data={plotlyData?.data}
                     layout={{ ...plotlyData.layout, showlegend: true }}
                     config={{
-                      scrollZoom: true,
                       editable: true,
                       responsive: true,
                     }}

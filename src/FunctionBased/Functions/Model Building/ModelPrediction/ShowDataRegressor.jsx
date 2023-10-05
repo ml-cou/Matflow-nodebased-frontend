@@ -16,7 +16,7 @@ function ShowDataRegressor({ data, result }) {
         <Plot
           data={JSON.parse(data.graph).data}
           layout={{ ...JSON.parse(data.graph).layout, showlegend: true }}
-          config={{ scrollZoom: true, editable: true, responsive: true }}
+          config={{ editable: true, responsive: true }}
         />
       </div>
     );
@@ -44,7 +44,7 @@ function ShowDataRegressor({ data, result }) {
           <Plot
             data={JSON.parse(data.graph).data}
             layout={{ ...JSON.parse(data.graph).layout, showlegend: true }}
-            config={{ scrollZoom: true, editable: true, responsive: true }}
+            config={{ editable: true, responsive: true }}
           />
         </div>
       </div>

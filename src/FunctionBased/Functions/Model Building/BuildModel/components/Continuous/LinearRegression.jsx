@@ -76,7 +76,7 @@ function LinearRegression({
           }),
         }
       );
-      
+
       const data = await res.json();
       setHData(data);
       setOptimizedData({ ...optimizedData, ...data.param });
@@ -159,9 +159,11 @@ function LinearRegression({
         </div>
       )}
       <div className="mt-8">
-        <h1 className="text-2xl font-medium tracking-wide mb-3">
-          Model Settings
-        </h1>
+        {Type === "function" && (
+          <h1 className="text-2xl font-medium tracking-wide mb-3">
+            Model Settings
+          </h1>
+        )}
         <div
           className={`${
             Type === "function"
