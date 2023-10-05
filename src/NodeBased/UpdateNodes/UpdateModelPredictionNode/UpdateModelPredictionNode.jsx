@@ -4,28 +4,63 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import React, { useEffect, useState } from "react";
 import { useReactFlow } from "reactflow";
-import BuildModel from "../../../FunctionBased/Functions/Model Building/BuildModel/BuildModel";
+import SingleDropDown from "../../../FunctionBased/Components/SingleDropDown/SingleDropDown";
 
-function UpdateBuildModelNode({ visible, setVisible, nodeData, nodeId }) {
+const RESULT_CLASSIFIER = [
+  "Target Value",
+  "Accuracy",
+  "Precision",
+  "Recall",
+  "F1-Score",
+  "Classification Report",
+  "Confusion Matrix",
+  "Actual vs. Predicted",
+  "Precision-Recall Curve",
+  "ROC Curve",
+];
+
+const RESULT_REGRESSOR = [
+  "Target Value",
+  "R-Squared",
+  "Mean Absolute Error",
+  "Mean Squared Error",
+  "Root Mean Squared Error",
+  "Regression Line Plot",
+  "Actual vs. Predicted",
+  "Residuals vs. Predicted",
+  "Histogram of Residuals",
+  "QQ Plot",
+  "Box Plot of Residuals",
+];
+
+function UpdateModelPredictionNode({ visible, setVisible, nodeId }) {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const rflow = useReactFlow();
   const nodeDetails = rflow.getNode(nodeId);
-  const Data = nodeDetails.data;
-  const [data, setData] = useState({});
+  const [RESULT, setResult] = useState([]);
+  const [activeResult, setActiveResult] = useState("");
+  const [target_var, setTargetVariable] = useState("");
 
   useEffect(() => {
-    if (Data.model_setting) {
-      setData(Data.model_setting);
+    const data = nodeDetails.data;
+    if (data && data.testTrain) {
+      setResult(
+        data.testTrain.whatKind === "Continuous"
+          ? RESULT_REGRESSOR
+          : RESULT_CLASSIFIER
+      );
+      setTargetVariable(data.testTrain.target_variable);
+      setActiveResult(data.result || "Target Value");
     }
-  }, [Data]);
+  }, [nodeDetails]);
 
   const handleSave = () => {
     const tempNode = {
       ...nodeDetails,
       data: {
         ...nodeDetails.data,
-        model_setting: data,
+        result: activeResult,
       },
     };
 
@@ -50,18 +85,24 @@ function UpdateBuildModelNode({ visible, setVisible, nodeData, nodeId }) {
         >
           <CloseIcon color="action" />
         </span>
+
         <h1 className="text-center font-medium tracking-wider text-2xl">
-          Edit Model Settings
+          Edit Model Prediction Options
         </h1>
 
-        <div className="min-w-[500px] mx-auto w-full p-6 py-4">
-          <BuildModel
-            csvData={nodeData.table}
-            nodeData={nodeData}
-            initValue={data}
-            onValueChange={setData}
-            type="node"
-          />
+        <div className="min-w-[500px] min-h-[300px] mx-auto w-full p-6 py-4 space-y-4">
+          <div>
+            <p className="text-lg mb-1">Result</p>
+            <SingleDropDown
+              columnNames={RESULT}
+              initValue={activeResult}
+              onValueChange={setActiveResult}
+            />
+          </div>
+          <div>
+            <p>Target Variable</p>
+            <SingleDropDown initValue={target_var} disabled />
+          </div>
         </div>
 
         <div className="sticky bottom-0 bg-white border-t-2 shadow-md border-gray-200 flex items-center gap-4 w-full justify-end px-6 py-3 pt-6 mt-4">
@@ -88,4 +129,4 @@ function UpdateBuildModelNode({ visible, setVisible, nodeData, nodeId }) {
   );
 }
 
-export default UpdateBuildModelNode;
+export default UpdateModelPredictionNode;

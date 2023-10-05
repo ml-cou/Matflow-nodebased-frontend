@@ -12,7 +12,7 @@ import {
   AiOutlineLineChart,
   AiOutlineMergeCells,
 } from "react-icons/ai";
-import { BiStats } from "react-icons/bi";
+import { BiStats, BiText } from "react-icons/bi";
 import { BsTable } from "react-icons/bs";
 import { GrTableAdd } from "react-icons/gr";
 import {
@@ -206,6 +206,11 @@ const IO_NODES = [
   {
     key: "0-0-5",
     label: "Model",
+  },
+  {
+    key: "0-0-6",
+    label: "Text",
+    icon: <BiText className="text-[rgba(0,0,0,0.54)]" size={20} />,
   },
 ];
 

@@ -17,7 +17,7 @@ function TimeSeriesNode({ id, data }) {
         .filter(
           (edge) =>
             edge.source === id &&
-            rflow.getNode(edge.target).type === "output_graph"
+            rflow.getNode(edge.target).type === "Graph"
         );
       temp.forEach(async (val) => {
         await handleTimeSeriesAnalysis(rflow, val);

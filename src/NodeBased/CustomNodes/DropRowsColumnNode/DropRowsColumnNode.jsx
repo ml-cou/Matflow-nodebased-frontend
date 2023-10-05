@@ -1,8 +1,8 @@
 import RemoveCircleOutlineOutlinedIcon from "@mui/icons-material/RemoveCircleOutlineOutlined";
 import React, { useEffect, useState } from "react";
 import { Handle, Position, useReactFlow } from "reactflow";
-import UpdateDropRowsColumnNode from "../../UpdateNodes/UpdateDropRowsColumnNode/UpdateDropRowsColumnNode";
 import { handleDropRowColumn } from "../../../util/NodeFunctions";
+import UpdateDropRowsColumnNode from "../../UpdateNodes/UpdateDropRowsColumnNode/UpdateDropRowsColumnNode";
 
 function DropRowsColumnNode({ id, data }) {
   console.log(data);
@@ -15,7 +15,8 @@ function DropRowsColumnNode({ id, data }) {
         .getEdges()
         .filter(
           (edge) =>
-            edge.source === id && rflow.getNode(edge.target).type === "upload"
+            edge.source === id &&
+            rflow.getNode(edge.target).type === "Upload File"
         );
       temp.forEach(async (val) => {
         await handleDropRowColumn(rflow, val);

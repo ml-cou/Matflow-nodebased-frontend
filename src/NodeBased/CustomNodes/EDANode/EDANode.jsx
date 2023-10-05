@@ -22,7 +22,7 @@ function EDANode({ id, data }) {
         .filter(
           (edge) =>
             edge.source === id &&
-            rflow.getNode(edge.target).type === "output_graph"
+            rflow.getNode(edge.target).type === "Graph"
         );
       temp.forEach(async (val) => {
         await handlePlotOptions(rflow, val);

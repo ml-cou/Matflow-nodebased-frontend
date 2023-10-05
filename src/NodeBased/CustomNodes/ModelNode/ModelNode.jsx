@@ -3,7 +3,7 @@ import React from "react";
 import { Handle, Position } from "reactflow";
 
 function ModelNode({ id, data }) {
-  console.log(data);
+  
   return (
     <>
       <div

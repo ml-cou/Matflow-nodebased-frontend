@@ -14,16 +14,14 @@ function ClusterNode({ id, data }) {
         .getEdges()
         .filter(
           (edge) =>
-            edge.source === id &&
-            rflow.getNode(edge.target).type === "output_graph"
+            edge.source === id && rflow.getNode(edge.target).type === "Graph"
         );
 
       const tempTable = rflow
         .getEdges()
         .filter(
           (edge) =>
-            edge.source === id &&
-            rflow.getNode(edge.target).type === "output_table"
+            edge.source === id && rflow.getNode(edge.target).type === "Table"
         );
       tempGraph.forEach(async (val) => {
         await handleCluster(rflow, val, "graph");

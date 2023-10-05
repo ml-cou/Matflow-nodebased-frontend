@@ -15,13 +15,12 @@ function MergeDatasetNode({ id, data }) {
         .filter(
           (edge) =>
             edge.source === id &&
-            rflow.getNode(edge.target).type === "upload"
+            rflow.getNode(edge.target).type === "Upload File"
         );
       temp.forEach(async (val) => {
         await handleMergeDataset(rflow, val);
       });
     })();
-
   }, [data, rflow]);
 
   return (
@@ -46,7 +45,7 @@ function MergeDatasetNode({ id, data }) {
           position={Position.Left}
         ></Handle>
         <div className="grid place-items-center gap-1 p-2 py-3 min-w-[80px]">
-          <AiOutlineMergeCells  size={"25"} />
+          <AiOutlineMergeCells size={"25"} />
           <span>Merge Dataset</span>
         </div>
       </div>

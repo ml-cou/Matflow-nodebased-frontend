@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { TbCirclesRelation } from "react-icons/tb";
+import { useEffect, useState } from "react";
 import { Handle, Position, useReactFlow } from "reactflow";
-import { handleDatasetCorrelation } from "../../../util/NodeFunctions";
-import UpdateCorelationNode from "../../UpdateNodes/UpdateCorelationNode/UpdateCorelationNode";
+import { handleModelEvaluation } from "../../../util/NodeFunctions";
+import UpdateModelEvaluationNode from "../../UpdateNodes/UpdateModelEvaluationNode/UpdateModelEvaluationNode";
 
-function CorelationNode({ id, data }) {
-  console.log(data);
+function ModelEvaluationNode({ id, data }) {
+  // console.log(data);
   const [visible, setVisible] = useState(false);
   const rflow = useReactFlow();
 
@@ -25,13 +24,15 @@ function CorelationNode({ id, data }) {
             edge.source === id && rflow.getNode(edge.target).type === "Graph"
         );
 
-      tempTable.forEach(async (val) => {
-        await handleDatasetCorrelation(rflow, val, "table");
-      });
-
-      tempGraph.forEach(async (val) => {
-        await handleDatasetCorrelation(rflow, val, "graph");
-      });
+      // console.log({ tempTable, tempGraph });
+      tempTable.length &&
+        tempTable.forEach(async (val) => {
+          await handleModelEvaluation(rflow, val, "table");
+        });
+      tempGraph.length &&
+        tempGraph.forEach(async (val) => {
+          await handleModelEvaluation(rflow, val, "graph");
+        });
     })();
   }, [data]);
 
@@ -46,20 +47,20 @@ function CorelationNode({ id, data }) {
         <Handle type="source" position={Position.Right}></Handle>
         <Handle type="target" position={Position.Left}></Handle>
         <div className="grid place-items-center gap-1 p-2 py-3 min-w-[80px]">
-          <TbCirclesRelation size={25} />
-          <span>Correlation</span>
+          {/* <HiOutlinePuzzle size={"25"} /> */}
+          <span>Model Evaluation</span>
         </div>
       </div>
-      {data && data.table && (
-        <UpdateCorelationNode
+      {data && (
+        <UpdateModelEvaluationNode
           visible={visible}
           setVisible={setVisible}
-          csvData={data.table}
           nodeId={id}
+          metrics={data.metrics_table}
         />
       )}
     </>
   );
 }
 
-export default CorelationNode;
+export default ModelEvaluationNode;

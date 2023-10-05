@@ -24,19 +24,23 @@ import DropRowsColumnNode from "../NodeBased/CustomNodes/DropRowsColumnNode/Drop
 import DuplicateNode from "../NodeBased/CustomNodes/DuplicateNode/DuplicateNode";
 import EDANode from "../NodeBased/CustomNodes/EDANode/EDANode";
 import EncodingNode from "../NodeBased/CustomNodes/EncodingNode/EncodingNode";
+import FeatureSelectionNode from "../NodeBased/CustomNodes/FeatureSelectionNode/FeatureSelectionNode";
 import GroupNode from "../NodeBased/CustomNodes/GroupNode/GroupNode";
 import HyperParameterNode from "../NodeBased/CustomNodes/HyperparameterNode/HyperParameterNode";
 import ImputationNode from "../NodeBased/CustomNodes/ImputationNode/ImputationNode";
 import InformationNode from "../NodeBased/CustomNodes/InformationNode/InformationNode";
 import MergeDatasetNode from "../NodeBased/CustomNodes/MergeDatasetNode/MergeDatasetNode";
 import ModelDeploymentNode from "../NodeBased/CustomNodes/ModelDeploymentNode/ModelDeploymentNode";
+import ModelEvaluationNode from "../NodeBased/CustomNodes/ModelEvaluationNode/ModelEvaluationNode";
 import ModelNode from "../NodeBased/CustomNodes/ModelNode/ModelNode";
+import ModelPredictionNode from "../NodeBased/CustomNodes/ModelPredictionNode/ModelPredictionNode";
 import ReverseMLNode from "../NodeBased/CustomNodes/ReverseMLNode/ReverseMLNode";
 import ScalingNode from "../NodeBased/CustomNodes/ScalingNode/ScalingNode";
 import SplitDatasetNode from "../NodeBased/CustomNodes/SplitDatasetNode/SplitDatasetNode";
 import StatisticsNode from "../NodeBased/CustomNodes/StatisticsNode/StatisticsNode";
 import TableNode from "../NodeBased/CustomNodes/TableNode/TableNode";
 import TestTrainDatasetNode from "../NodeBased/CustomNodes/TestTrainDatasetNode/TestTrainDatasetNode";
+import TextNode from "../NodeBased/CustomNodes/TextNode/TextNode";
 import TimeSeriesNode from "../NodeBased/CustomNodes/TimeSeiresNode/TimeSeriesNode";
 import UploadFile from "../NodeBased/CustomNodes/UploadFile/UploadFile";
 import Controls from "../NodeBased/components/Controls/Controls";
@@ -54,12 +58,20 @@ import {
   handleDatasetStatistics,
   handleDropRowColumn,
   handleEncoding,
+  handleFeatureSelection,
   handleFileForMergeDataset,
   handleHyperParameter,
   handleImputation,
   handleImputationInit,
   handleMergeDataset,
   handleModel,
+  handleModelDeployment,
+  handleModelDeploymentInit,
+  handleModelEvaluation,
+  handleModelEvaluationInit,
+  handleModelPrediction,
+  handleModelPredictionInit,
+  handleModelPredictionText,
   handleOutputTable,
   handlePlotOptions,
   handleReverseML,
@@ -99,6 +111,10 @@ const nodeTypes = {
   "Hyper-parameter Optimization": HyperParameterNode,
   Model: ModelNode,
   "Model Deployment": ModelDeploymentNode,
+  Text: TextNode,
+  "Model Evaluation": ModelEvaluationNode,
+  "Model Prediction": ModelPredictionNode,
+  "Feature Selection": FeatureSelectionNode,
 };
 
 const initialNodes = [
@@ -214,9 +230,23 @@ function EditorPage() {
 
   const onConnect = useCallback(
     async (params) => {
+      const source = rflow.getNode(params.source);
+      const target = rflow.getNode(params.target);
       const typeSource = rflow.getNode(params.source).type;
       const typeTarget = rflow.getNode(params.target).type;
       let ok = false;
+
+      setEdges((eds) => {
+        const temp = {
+          ...params,
+          style: { strokeWidth: 1, stroke: "grey" },
+          animated: true,
+        };
+        const allEdges = addEdge(temp, eds);
+        console.log(allEdges)
+        return allEdges;
+      });
+
       if (typeTarget !== "Merge Dataset" && typeTarget !== "Append Dataset") {
         const temp = edgeList.filter((val) => val.target === params.target);
         if (temp && temp.length > 0) {
@@ -251,7 +281,8 @@ function EditorPage() {
           typeTarget === "Corelation" ||
           typeTarget === "Group" ||
           typeTarget === "Duplicate" ||
-          typeTarget === "Split Dataset")
+          typeTarget === "Split Dataset" ||
+          typeTarget === "Feature Selection")
       ) {
         ok = await handleOutputTable(rflow, params);
       }
@@ -388,20 +419,78 @@ function EditorPage() {
         ok = await handleModel(rflow, params);
       }
 
-      if (!ok) return;
-      setEdges((eds) => {
-        const temp = {
-          ...params,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 15,
-            height: 15,
-            color: "#000",
-          },
-          style: { strokeWidth: 2, stroke: "#000" },
-        };
-        return addEdge(temp, eds);
+      if (typeSource === "Model" && typeTarget === "Model Deployment") {
+        ok = await handleModelDeploymentInit(rflow, params);
+      }
+
+      if (typeSource === "Model Deployment" && typeTarget === "Table") {
+        ok = await handleOutputTable(rflow, params);
+      }
+
+      if (typeSource === "Model Deployment" && typeTarget === "Text") {
+        ok = await handleModelDeployment(rflow, params);
+      }
+
+      if (typeSource === "Model" && typeTarget === "Model Evaluation") {
+        ok = await handleModelEvaluationInit(rflow, params);
+      }
+
+      if (typeSource === "Model Evaluation" && typeTarget === "Table") {
+        ok = await handleModelEvaluation(rflow, params, "table");
+      }
+
+      if (typeSource === "Model Evaluation" && typeTarget === "Graph") {
+        ok = await handleModelEvaluation(rflow, params, "graph");
+      }
+
+      if (typeSource === "Model" && typeTarget === "Model Prediction") {
+        ok = await handleModelPredictionInit(rflow, params);
+      }
+
+      if (
+        typeSource === "Model Prediction" &&
+        (typeTarget === "Graph" || typeTarget === "Table")
+      ) {
+        ok = await handleModelPrediction(rflow, params);
+      }
+
+      if (typeSource === "Model Prediction" && typeTarget === "Text") {
+        ok = await handleModelPredictionText(rflow, params);
+      }
+
+      if (
+        typeSource === "Feature Selection" &&
+        (typeTarget === "Table" || typeTarget === "Graph")
+      ) {
+        ok = await handleFeatureSelection(rflow, params);
+      }
+
+      
+
+      let tempEdge = rflow.getEdges().map((val) => {
+        if (val.source === source.id && val.target === target.id) {
+          return {
+            ...val,
+            animated: false,
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              width: 15,
+              height: 15,
+              color: "#000",
+            },
+            style: { strokeWidth: 2, stroke: "#000" },
+          };
+        }
+        return val;
       });
+
+      if (!ok) {
+        tempEdge = tempEdge.filter(
+          (val) => !(val.source === source.id && val.target === target.id)
+        );
+      }
+
+      rflow.setEdges(tempEdge);
     },
 
     [nodes, rflow, edgeList]

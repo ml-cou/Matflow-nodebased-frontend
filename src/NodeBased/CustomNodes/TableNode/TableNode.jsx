@@ -4,13 +4,15 @@ import { Modal } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
 import { BsTable } from "react-icons/bs";
 import { Handle, Position } from "reactflow";
+import AgGridAutoDataComponent from "../../../FunctionBased/Components/AgGridComponent/AgGridAutoDataComponent";
 import AgGridComponent from "../../../FunctionBased/Components/AgGridComponent/AgGridComponent";
 
 function TableNode({ id, data }) {
+  // console.log(data)
   const [colDefs, setColDefs] = useState(null);
   const [visible, setVisible] = useState(false);
   const handler = () => setVisible(true);
-  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(true);
 
   useEffect(() => {
     if (data && data.table) {
@@ -26,8 +28,10 @@ function TableNode({ id, data }) {
           : [];
 
       if (tempColDefs && tempColDefs.length - 1 >= 0)
-        tempColDefs = tempColDefs.slice(tempColDefs.length-1).concat(tempColDefs.slice(0, tempColDefs.length-1));
-      console.log(tempColDefs);
+        tempColDefs = tempColDefs
+          .slice(tempColDefs.length - 1)
+          .concat(tempColDefs.slice(0, tempColDefs.length - 1));
+
       setColDefs(tempColDefs);
     }
   }, [data]);
@@ -72,16 +76,45 @@ function TableNode({ id, data }) {
           </span>
         </Modal.Header>
         <Modal.Body>
-          {!colDefs || colDefs.length === 0 || !data || !data.table ? (
-            <h3 className="text-xl tracking-wide font-medium text-center">
-              No table data found.
-            </h3>
+          {!data || !data.method ? (
+            <>
+              {!colDefs || colDefs.length === 0 || !data || !data.table ? (
+                <h3 className="text-xl tracking-wide font-medium text-center">
+                  No table data found.
+                </h3>
+              ) : (
+                <div
+                  className="ag-theme-alpine py-2"
+                  style={{ height: "600px", width: "100%" }}
+                >
+                  <AgGridComponent rowData={data.table} columnDefs={colDefs} />
+                </div>
+              )}
+            </>
           ) : (
             <div
-              className="ag-theme-alpine py-2"
-              style={{ height: "600px", width: "100%" }}
+              className={`grid ${
+                data.tables && data.tables.length > 1
+                  ? "grid-cols-2"
+                  : "grid-cols-1"
+              } gap-4`}
             >
-              <AgGridComponent rowData={data.table} columnDefs={colDefs} />
+              {data.tables &&
+                data.tables.map((table, ind) => (
+                  <div key={ind}>
+                    <h1 className="text-xl mb-2 font-medium">
+                      {table.heading}
+                    </h1>
+                    <AgGridAutoDataComponent
+                      download={true}
+                      rowData={table.table}
+                      height="250px"
+                      rowHeight={30}
+                      headerHeight={40}
+                      paginationPageSize={5}
+                    />
+                  </div>
+                ))}
             </div>
           )}
         </Modal.Body>

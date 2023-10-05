@@ -33,7 +33,7 @@ function HomePage() {
               <Link to={"/dashboard"} className="text-black">Get Started</Link>
             </button>
             <button className="cursor-pointer bg-secondary-btn px-6 py-4 rounded-md hover:translate-x-0 font-medium hover:translate-y-[-3px] shadow-sm duration-150">
-              Request A Demo
+              <Link to={'/editor'}>Nodebased</Link>
             </button>
           </div>
         </div>

@@ -15,7 +15,8 @@ function AddModify({ id, data }) {
         .getEdges()
         .filter(
           (edge) =>
-            edge.source === id && rflow.getNode(edge.target).type === "upload"
+            edge.source === id &&
+            rflow.getNode(edge.target).type === "Upload File"
         );
       temp.forEach(async (val) => {
         await handleAddModify(rflow, val);

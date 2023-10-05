@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Handle, Position, useReactFlow } from "reactflow";
-import UpdateSplitDatasetNode from "../../UpdateNodes/UpdateSplitDatasetNode/UpdateSplitDatasetNode";
+import { handleFeatureSelection } from "../../../util/NodeFunctions";
+import UpdateFeatureSelectionNode from "../../UpdateNodes/UpdateFeatureSelectionNode/UpdateFeatureSelectionNode";
 
-import SplitscreenIcon from "@mui/icons-material/Splitscreen";
-import { handleSplitDataset } from "../../../util/NodeFunctions";
-
-function SplitDatasetNode({ id, data }) {
-  // console.log(data);
+function FeatureSelectionNode({ id, data }) {
+  console.log(data);
   const [visible, setVisible] = useState(false);
   const rflow = useReactFlow();
 
@@ -17,10 +15,11 @@ function SplitDatasetNode({ id, data }) {
         .filter(
           (edge) =>
             edge.source === id &&
-            rflow.getNode(edge.target).type === "Test-Train Dataset"
+            (rflow.getNode(edge.target).type === "Table" ||
+              rflow.getNode(edge.target).type === "Graph")
         );
       temp.forEach(async (val) => {
-        await handleSplitDataset(rflow, val);
+        await handleFeatureSelection(rflow, val);
       });
     })();
   }, [data]);
@@ -36,12 +35,12 @@ function SplitDatasetNode({ id, data }) {
         <Handle type="source" position={Position.Right}></Handle>
         <Handle type="target" position={Position.Left}></Handle>
         <div className="grid place-items-center gap-1 p-2 py-3 min-w-[80px]">
-          <SplitscreenIcon />
-          <span>Split Dataset</span>
+          {/* <HiOutlinePuzzle size={"25"} /> */}
+          <span>Feature Selection</span>
         </div>
       </div>
       {data && data.table && (
-        <UpdateSplitDatasetNode
+        <UpdateFeatureSelectionNode
           visible={visible}
           setVisible={setVisible}
           csvData={data.table}
@@ -52,4 +51,4 @@ function SplitDatasetNode({ id, data }) {
   );
 }
 
-export default SplitDatasetNode;
+export default FeatureSelectionNode;

@@ -7,6 +7,7 @@ import Plot from "react-plotly.js";
 import { Handle, Position } from "reactflow";
 
 function ChartNode({ id, data }) {
+  console.log(data)
   const [visible, setVisible] = useState(false);
   const handler = () => setVisible(true);
   const [isFullScreen, setIsFullScreen] = useState(true);
@@ -17,11 +18,14 @@ function ChartNode({ id, data }) {
 
   return (
     <>
-      <div className="flex bg-white border-2 border-black shadow-[6px_6px_0_1px_rgba(0,0,0,0.7)]" onDoubleClick={handler}>
+      <div
+        className="flex bg-white border-2 border-black shadow-[6px_6px_0_1px_rgba(0,0,0,0.7)]"
+        onDoubleClick={handler}
+      >
         {/* <Handle type="source" position={Position.Right}></Handle> */}
         <Handle type="target" position={Position.Left}></Handle>
         <div className="grid place-items-center p-2 py-3 min-w-[80px]">
-          <AutoGraphOutlinedIcon  />
+          <AutoGraphOutlinedIcon />
           <span>Graph</span>
         </div>
       </div>
@@ -49,17 +53,36 @@ function ChartNode({ id, data }) {
         </Modal.Header>
         <Modal.Body>
           <div>
-            {data && data.graph && (
-              <div className="flex justify-center mt-4">
-                <Plot
-                  data={data.graph?.data}
-                  layout={{ ...data.graph.layout, showlegend: true }}
-                  config={{
-                    scrollZoom: true,
-                    editable: true,
-                    responsive: true,
-                  }}
-                />
+            {!data || !data.method ? (
+              <>
+                {data && data.graph && (
+                  <div className="flex justify-center mt-4">
+                    <Plot
+                      data={data.graph?.data}
+                      layout={{ ...data.graph.layout, showlegend: true }}
+                      config={{
+                        editable: true,
+                        responsive: true,
+                      }}
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
+              <div>
+                {data.graphs &&
+                  data.graphs.map((graph, ind) => (
+                    <div key={ind} className="flex justify-center my-4">
+                      <Plot
+                        data={graph.data}
+                        layout={{ ...graph.layout, showlegend: true }}
+                        config={{
+                          editable: true,
+                          responsive: true,
+                        }}
+                      />
+                    </div>
+                  ))}
               </div>
             )}
           </div>

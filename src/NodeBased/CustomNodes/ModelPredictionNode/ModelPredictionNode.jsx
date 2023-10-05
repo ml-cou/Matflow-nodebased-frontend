@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Handle, Position, useReactFlow } from "reactflow";
-import UpdateSplitDatasetNode from "../../UpdateNodes/UpdateSplitDatasetNode/UpdateSplitDatasetNode";
+import {
+  handleModelPrediction,
+  handleModelPredictionText,
+} from "../../../util/NodeFunctions";
+import UpdateModelPredictionNode from "../../UpdateNodes/UpdateModelPredictionNode/UpdateModelPredictionNode";
 
-import SplitscreenIcon from "@mui/icons-material/Splitscreen";
-import { handleSplitDataset } from "../../../util/NodeFunctions";
-
-function SplitDatasetNode({ id, data }) {
+function ModelPredictionNode({ id, data }) {
   // console.log(data);
   const [visible, setVisible] = useState(false);
   const rflow = useReactFlow();
@@ -17,10 +18,22 @@ function SplitDatasetNode({ id, data }) {
         .filter(
           (edge) =>
             edge.source === id &&
-            rflow.getNode(edge.target).type === "Test-Train Dataset"
+            (rflow.getNode(edge.target).type === "Table" ||
+              rflow.getNode(edge.target).type === "Graph")
+        );
+
+      const tempText = rflow
+        .getEdges()
+        .filter(
+          (edge) =>
+            edge.source === id && rflow.getNode(edge.target).type === "Text"
         );
       temp.forEach(async (val) => {
-        await handleSplitDataset(rflow, val);
+        await handleModelPrediction(rflow, val);
+      });
+
+      tempText.forEach(async (val) => {
+        await handleModelPredictionText(rflow, val);
       });
     })();
   }, [data]);
@@ -36,15 +49,14 @@ function SplitDatasetNode({ id, data }) {
         <Handle type="source" position={Position.Right}></Handle>
         <Handle type="target" position={Position.Left}></Handle>
         <div className="grid place-items-center gap-1 p-2 py-3 min-w-[80px]">
-          <SplitscreenIcon />
-          <span>Split Dataset</span>
+          {/* <HiOutlinePuzzle size={"25"} /> */}
+          <span>Model Prediction</span>
         </div>
       </div>
-      {data && data.table && (
-        <UpdateSplitDatasetNode
+      {data && (
+        <UpdateModelPredictionNode
           visible={visible}
           setVisible={setVisible}
-          csvData={data.table}
           nodeId={id}
         />
       )}
@@ -52,4 +64,4 @@ function SplitDatasetNode({ id, data }) {
   );
 }
 
-export default SplitDatasetNode;
+export default ModelPredictionNode;
