@@ -55,6 +55,31 @@ const ITER = [
   "Multilayer Perceptron",
 ];
 
+const REGRESSOR = [
+  "Linear Regression",
+  "Ridge Regression",
+  "Lasso Regression",
+  "Decision Tree Regression",
+  "Random Forest Regression",
+  "Support Vector Regressor",
+];
+
+const CLASSIFIER = [
+  "K-Nearest Neighbors",
+  "Support Vector Machine",
+  "Logistic Regression",
+  "Decision Tree Classification",
+  "Random Forest Classification",
+  "Multilayer Perceptron",
+];
+
+const DISPLAY_METRICES = [
+  "R-Squared",
+  "Mean Absolute Error",
+  "Mean Squared Error",
+  "Root Mean Squared Error",
+];
+
 const raiseErrorToast = (rflow, params, error) => {
   // Error paile connected node er data delete kore dibe
   const tempNodes = rflow.getNodes().map((val) => {
@@ -135,7 +160,7 @@ export const handlePlotOptions = async (rflow, params) => {
 export const handleReverseML = async (rflow, params) => {
   try {
     const { table, reverseml } = rflow.getNode(params.source).data;
-    console.log("first");
+    // console.log("first");
     if (!table) throw new Error("Check your file in upload node.");
     const res = await fetch("http://127.0.0.1:8000/api/reverseml/", {
       method: "POST",
@@ -209,7 +234,7 @@ export const handleTimeSeriesAnalysis = async (rflow, params) => {
   try {
     const { table, timeSeries } = rflow.getNode(params.source).data;
     if (!timeSeries) return;
-    console.log(timeSeries);
+    // console.log(timeSeries);
     const res = await fetch("http://127.0.0.1:8000/api/time_series_analysis/", {
       method: "POST",
       headers: {
@@ -489,7 +514,7 @@ export const handleScaling = async (rflow, params) => {
     });
 
     let data = await res.json();
-    console.log(data);
+    // console.log(data);
     const tempNodes = rflow.getNodes().map((val) => {
       if (val.id === params.target)
         return {
@@ -524,7 +549,7 @@ export const handleEncoding = async (rflow, params) => {
     });
 
     let data = await res.json();
-    console.log(data);
+    // console.log(data);
     const tempNodes = rflow.getNodes().map((val) => {
       if (val.id === params.target)
         return {
@@ -559,7 +584,7 @@ export const handleCluster = async (rflow, params, outputType) => {
     });
 
     let data = await res.json();
-    console.log(data);
+    // console.log(data);
     const tempNodes = rflow.getNodes().map((val) => {
       if (val.id === params.target)
         return {
@@ -775,7 +800,7 @@ export const handleDatasetCorrelation = async (rflow, params, outputType) => {
         const { id, ...rest } = cor[i];
         newData.push({ ...rest, column_name: columnName[i] });
       }
-      console.log({ newData });
+      // console.log({ newData });
       cor = newData;
     } else {
       let ind = 0;
@@ -803,7 +828,7 @@ export const handleDatasetCorrelation = async (rflow, params, outputType) => {
         delete tempData[j][columnNames[i]];
       }
     }
-    console.log(tempData);
+    // console.log(tempData);
     tempData = tempData.filter((val) => Object.keys(val).length !== 0);
 
     cor = tempData;
@@ -866,7 +891,7 @@ export const handleDatasetGroup = async (rflow, params) => {
     });
 
     let { data } = await res.json();
-    console.log(JSON.parse(data));
+    // console.log(JSON.parse(data));
     const tempNodes = rflow.getNodes().map((val) => {
       if (val.id === params.target)
         return {
@@ -1010,7 +1035,7 @@ export const handleImputation = async (rflow, params) => {
     });
 
     let data = await res.json();
-    console.log(data);
+    // console.log(data);
     const tempNodes = rflow.getNodes().map((val) => {
       if (val.id === params.target)
         return {
@@ -1106,7 +1131,7 @@ export const handleTestTrainPrint = async (rflow, params) => {
 export const handleTestTrainDataset = async (rflow, params) => {
   try {
     let testTrain = rflow.getNode(params.source).data;
-
+    // console.log({ testTrain });
     if (!testTrain) throw new Error("Check Test-Train Dataset Node.");
     if (rflow.getNode(params.target).type === "Hyper-parameter Optimization") {
       if (!testTrain.regressor)
@@ -1122,11 +1147,148 @@ export const handleTestTrainDataset = async (rflow, params) => {
     if (RANDOM_STATE.includes(testTrain.regressor))
       hyper["Random state for hyperparameter search"] = 2;
 
+    let model_setting = {};
+    if (testTrain.whatKind === "Continuous" && testTrain.regressor) {
+      const regressor = testTrain.regressor;
+      if (regressor === REGRESSOR[0]) {
+        model_setting = {
+          ...model_setting,
+          "Number of jobs": -1,
+          fit_intercept: true,
+          "Display Metrices": DISPLAY_METRICES,
+        };
+      }
+      if (regressor === REGRESSOR[1]) {
+        model_setting = {
+          ...model_setting,
+          fit_intercept: true,
+          "Display Metrices": DISPLAY_METRICES,
+          max_iter: 1000,
+          solver: "auto",
+          alpha: 1,
+          tol: 0,
+        };
+      }
+      if (regressor === REGRESSOR[2]) {
+        model_setting = {
+          ...model_setting,
+          warm_start: true,
+          fit_intercept: true,
+          "Display Metrices": DISPLAY_METRICES,
+          alpha: 1,
+          max_iter: 1000,
+          tol: 0,
+          selection: "cyclic",
+        };
+      }
+      if (regressor === REGRESSOR[3]) {
+        model_setting = {
+          ...model_setting,
+          min_samples_leaf: 1,
+          min_samples_split: 2,
+          "Display Metrices": DISPLAY_METRICES,
+          random_state: 0,
+          criterion: "mse",
+          none: true,
+        };
+      }
+      if (regressor === REGRESSOR[4]) {
+        model_setting = {
+          ...model_setting,
+          min_samples_leaf: 1,
+          min_samples_split: 2,
+          "Display Metrices": DISPLAY_METRICES,
+          max_features: "sqrt",
+          max_depth: 0,
+          criterion: "friedman_mse",
+        };
+      }
+      if (regressor === REGRESSOR[5]) {
+        model_setting = {
+          ...model_setting,
+          "Display Metrices": DISPLAY_METRICES,
+          C: 1,
+          epsilon: 0.1,
+          kernel: "linear",
+        };
+      }
+    } else if (testTrain.regressor) {
+      const regressor = testTrain.regressor;
+      if (regressor === CLASSIFIER[0]) {
+        model_setting = {
+          ...model_setting,
+          "Multiclass Average": "micro",
+          n_neighbors: 2,
+          weights: "uniform",
+          metric: "minkowski",
+        };
+      }
+      if (regressor === CLASSIFIER[1]) {
+        model_setting = {
+          ...model_setting,
+          "Multiclass Average": "micro",
+          C: 1,
+          tol: 0.001,
+          degree: 3,
+          kernel: "linear",
+          gamma: "scale",
+        };
+      }
+      if (regressor === CLASSIFIER[2]) {
+        model_setting = {
+          ...model_setting,
+          "Multiclass Average": "micro",
+          C: 1,
+          tol: 0.0001,
+          max_iter: 100,
+          random_state: 42,
+          penalty: "l2",
+          solver: "lbfgs",
+        };
+      }
+      if (regressor === CLASSIFIER[3]) {
+        model_setting = {
+          ...model_setting,
+          "Multiclass Average": "micro",
+          min_samples_split: 2,
+          min_samples_leaf: 2,
+          random_state: 2,
+          criterion: "gini",
+          none: true,
+        };
+      }
+      if (regressor === CLASSIFIER[4]) {
+        model_setting = {
+          ...model_setting,
+          "Multiclass Average": "micro",
+          n_estimators: 100,
+          min_samples_split: 2,
+          min_samples_leaf: 2,
+          random_state: 0,
+          criterion: "gini",
+          max_depth: "None",
+          auto: true,
+        };
+      }
+      if (regressor === CLASSIFIER[5]) {
+        model_setting = {
+          ...model_setting,
+          "Multiclass Average": "micro",
+          activation: "relu",
+          hidden_layer_sizes: 3,
+          max_iter: 1000,
+          alpha: 0.0001,
+          learning_rate_init: 0.001,
+          tol: 0.001,
+        };
+      }
+    }
+
     const tempNodes = rflow.getNodes().map((val) => {
       if (val.id === params.target)
         return {
           ...val,
-          data: { testTrain, hyper },
+          data: { ...val.data, testTrain, hyper, model_setting },
         };
       return val;
     });
@@ -1141,7 +1303,7 @@ export const handleTestTrainDataset = async (rflow, params) => {
 
 export const handleHyperParameter = async (rflow, params) => {
   try {
-    let { hyper, testTrain } = rflow.getNode(params.source).data;
+    let { hyper, testTrain, model_setting } = rflow.getNode(params.source).data;
 
     if (!hyper) throw new Error("Check Hyperparameter Optimization Node.");
 
@@ -1194,7 +1356,11 @@ export const handleHyperParameter = async (rflow, params) => {
       if (val.id === params.target)
         return {
           ...val,
-          data: { ...val.data, hyper: tmp, testTrain },
+          data: {
+            ...val.data,
+            model_setting: { ...model_setting, ...tmp },
+            testTrain,
+          },
         };
       return val;
     });
@@ -1209,19 +1375,9 @@ export const handleHyperParameter = async (rflow, params) => {
 
 export const handleModel = async (rflow, params) => {
   try {
-    let { testTrain, hyper } = rflow.getNode(params.source).data;
-    if (!testTrain || !hyper) throw new Error("Check Build Model Node");
+    let { testTrain, model_setting } = rflow.getNode(params.source).data;
 
-    console.log({
-      train: testTrain.train,
-      test: testTrain.test,
-      [testTrain.whatKind === "Continuous" ? "regressor" : "classifier"]:
-        testTrain.regressor,
-      type: testTrain.whatKind === "Continuous" ? "regressor" : "classifier",
-      target_var: testTrain.target_variable,
-      ...hyper,
-      file: testTrain.table,
-    });
+    if (!testTrain || !model_setting) throw new Error("Check Build Model Node");
 
     const res = await fetch("http://127.0.0.1:8000/api/build_model/", {
       method: "POST",
@@ -1235,7 +1391,7 @@ export const handleModel = async (rflow, params) => {
           testTrain.regressor,
         type: testTrain.whatKind === "Continuous" ? "regressor" : "classifier",
         target_var: testTrain.target_variable,
-        ...hyper,
+        ...model_setting,
         file: testTrain.table,
       }),
     });
@@ -1247,6 +1403,7 @@ export const handleModel = async (rflow, params) => {
           ...val,
           data: {
             ...val.data,
+            testTrain,
             model: {
               name: testTrain.model_name,
               ...data,
@@ -1256,6 +1413,491 @@ export const handleModel = async (rflow, params) => {
       return val;
     });
     rflow.setNodes(tempNodes);
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
+
+export const handleModelDeploymentInit = async (rflow, params) => {
+  try {
+    let { testTrain, model } = rflow.getNode(params.source).data;
+
+    if (!testTrain || !model)
+      throw new Error("Check if the model is built successfully");
+
+    const res = await fetch("http://127.0.0.1:8000/api/deploy_data/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        train: testTrain.train,
+        target_var: testTrain.target_variable,
+      }),
+    });
+    const data = await res.json();
+
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return {
+          ...val,
+          data: {
+            ...val.data,
+            table: data.dataframe,
+            result_init: data.result,
+            result: data.result,
+            model,
+            train: testTrain.train,
+            target_var: testTrain.target_variable,
+            model_deploy: model.model_deploy,
+          },
+        };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
+
+export const handleModelDeployment = async (rflow, params) => {
+  try {
+    let model_deploy = rflow.getNode(params.source).data;
+
+    if (!model_deploy) throw new Error("Check Model Deployment Node");
+
+    let result = {};
+    model_deploy.result.forEach((val) => {
+      result = { ...result, [val.col]: val.value };
+    });
+
+    const res = await fetch("http://127.0.0.1:8000/api/deploy_result/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        train: model_deploy.train,
+        target_var: model_deploy.target_var,
+        result,
+        model_deploy: model_deploy.model_deploy,
+      }),
+    });
+    const data = await res.json();
+    // console.log(data);
+
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return {
+          ...val,
+          data: {
+            ...val.data,
+            type: "Prediction",
+            result: `${model_deploy.target_var}: ${data.pred}`,
+          },
+        };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
+
+export const handleModelEvaluationInit = async (rflow, params) => {
+  try {
+    let { model } = rflow.getNode(params.source).data;
+
+    if (!model) throw new Error("Check if the model is built successfully");
+
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return {
+          ...val,
+          data: {
+            ...val.data,
+            ...model,
+            filtered_column: Object.keys(model.metrics_table),
+          },
+        };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
+
+export const handleModelEvaluation = async (rflow, params, type) => {
+  // console.log("s");
+  try {
+    let model = rflow.getNode(params.source).data;
+
+    if (!model) throw new Error("Check if the model is built successfully");
+
+    // console.log(model);
+
+    const table = model.filtered_column.map((val) => {
+      return {
+        "Column Name": val,
+        Value: model.metrics_table[val],
+      };
+    });
+
+    const file = [{ ...model.metrics_table, name: model.name }];
+
+    let data;
+
+    if (type === "graph") {
+      const res = await fetch("http://127.0.0.1:8000/api/model_evaluation/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          file,
+          "Display Type": "Graph",
+          "Display Result": model.display_result || "All",
+          "Select Orientation": model.orientation || "Vertical",
+          Columns:
+            model.display_result === "Custom"
+              ? model.filtered_column
+              : undefined,
+        }),
+      });
+      data = await res.json();
+      data = JSON.parse(data);
+    }
+
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return {
+          ...val,
+          data: {
+            [type === "table" ? "table" : "graph"]:
+              type === "table" ? table : data,
+          },
+        };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
+
+export const handleModelPredictionInit = async (rflow, params, type) => {
+  // console.log("s");
+  try {
+    let { model, testTrain } = rflow.getNode(params.source).data;
+
+    if (!model || !testTrain)
+      throw new Error("Check if the model is built successfully");
+
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return {
+          ...val,
+          data: {
+            ...val.data,
+            model,
+            testTrain,
+            result: "Target Value",
+          },
+        };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
+
+export const handleModelPrediction = async (rflow, params) => {
+  // console.log("s");
+  try {
+    let { model, testTrain, result } = rflow.getNode(params.source).data;
+
+    if (!model || !testTrain)
+      throw new Error("Check if the model is built successfully");
+
+    if (!result) throw new Error("Check Model Prediction Node");
+
+    let text = "",
+      table,
+      graph;
+
+    if (model.metrics[result]) {
+      text = `${result}: ${model.metrics[result]}`;
+      const tempNodes = rflow.getNodes().map((val) => {
+        if (val.id === params.target)
+          return {
+            ...val,
+            data: {
+              // ...val.data,
+              type: result,
+              result: text,
+            },
+          };
+        return val;
+      });
+      rflow.setNodes(tempNodes);
+      return true;
+    } else {
+      const res = await fetch("http://127.0.0.1:8000/api/model_prediction/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          "Target Variable": testTrain.target_variable,
+          model: model.metrics_table,
+          file: testTrain.table,
+          Result: result,
+          y_pred: JSON.parse(model.y_pred),
+          type:
+            testTrain.whatKind === "Continuous" ? "regressor" : "classifier",
+          regressor: testTrain.regressor,
+        }),
+      });
+
+      const data = await res.json();
+      if (typeof data === "string") text = data;
+      else {
+        if (data.table) {
+          table = JSON.parse(data.table);
+        }
+        if (data.graph) {
+          graph = JSON.parse(data.graph);
+        }
+      }
+    }
+
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return {
+          ...val,
+          data: {
+            // ...val.data,
+            table,
+            graph,
+            type: result,
+            result: text,
+          },
+        };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
+
+export const handleModelPredictionText = async (rflow, params) => {
+  // console.log("s");
+  try {
+    let { model, testTrain, result } = rflow.getNode(params.source).data;
+
+    if (!model || !testTrain)
+      throw new Error("Check if the model is built successfully");
+
+    if (!result) throw new Error("Check Model Prediction Node");
+
+    let text = "";
+
+    if (model.metrics[result]) {
+      text = `${result}: ${model.metrics[result]}`;
+    } else if (result === "Classification Report") {
+      const res = await fetch("http://127.0.0.1:8000/api/model_prediction/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          "Target Variable": testTrain.target_variable,
+          model: model.metrics_table,
+          file: testTrain.table,
+          Result: result,
+          y_pred: JSON.parse(model.y_pred),
+          type:
+            testTrain.whatKind === "Continuous" ? "regressor" : "classifier",
+          regressor: testTrain.regressor,
+        }),
+      });
+
+      const data = await res.json();
+      if (typeof data === "string") text = data;
+    }
+
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return {
+          ...val,
+          data: {
+            type: result,
+            result: text,
+          },
+        };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+
+    return true;
+  } catch (error) {
+    raiseErrorToast(rflow, params, error.message);
+    return false;
+  }
+};
+
+export const handleFeatureSelection = async (rflow, params) => {
+  try {
+    let { feature_selection } = rflow.getNode(params.source).data;
+
+    if (!feature_selection) throw new Error("Check Feature Selection Node");
+
+    const res = await fetch("http://127.0.0.1:8000/api/feature_selection/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        method: feature_selection.method,
+        k_fold: parseInt(feature_selection.k_fold),
+        target_var: feature_selection.target_var,
+        dataset: feature_selection.csvData,
+        score_func: feature_selection.score_func,
+        best_Kfeature: parseInt(feature_selection.best_Kfeature),
+      }),
+    });
+
+    const Data = await res.json();
+    console.log(Data);
+
+    let graphs = [],
+      tables = [];
+    if (feature_selection.method === "Best Overall Features") {
+      let selectedFeatureData =
+        Data.selected_features.custom_feature_data.group.selected_features_data;
+      let tempResult1 = [];
+      selectedFeatureData.rows.forEach((row) => {
+        let tmp = {};
+        row.forEach((val, ind) => {
+          tmp = { ...tmp, [selectedFeatureData.headers[ind]]: val };
+        });
+        tempResult1.push(tmp);
+      });
+
+      let tempResult = [];
+      let droppedFeature =
+        Data.selected_features.custom_feature_data.group.dropped_features_data;
+      droppedFeature.rows.forEach((row) => {
+        let tmp = {};
+        row.forEach((val, ind) => {
+          tmp = { ...tmp, [droppedFeature.headers[ind]]: val };
+        });
+        tempResult.push(tmp);
+      });
+
+      // For Single Data
+      selectedFeatureData =
+        Data.selected_features.custom_feature_data.single
+          .selected_features_data;
+      let tempResult3 = [];
+      selectedFeatureData.rows.forEach((row) => {
+        let tmp = {};
+        row.forEach((val, ind) => {
+          tmp = { ...tmp, [selectedFeatureData.headers[ind]]: val };
+        });
+        tempResult3.push(tmp);
+      });
+
+      let tempResult4 = [];
+      droppedFeature =
+        Data.selected_features.custom_feature_data.single.dropped_features_data;
+      droppedFeature.rows.forEach((row) => {
+        let tmp = {};
+        row.forEach((val, ind) => {
+          tmp = { ...tmp, [droppedFeature.headers[ind]]: val };
+        });
+        tempResult4.push(tmp);
+      });
+
+      tables = [
+        { heading: "Selected Features: ", table: tempResult1 },
+        { heading: "Dropped Features: ", table: tempResult },
+        { heading: "Selected Features: ", table: tempResult3 },
+        { heading: "Dropped Features: ", table: tempResult4 },
+      ];
+
+      let data = Data.selected_features.graph_data;
+      if (data) {
+        if (data.bar_plot) {
+          graphs.push(JSON.parse(data.bar_plot));
+        }
+        if (data.scatter_plot) {
+          graphs.push(JSON.parse(data.scatter_plot));
+        }
+      }
+      data = Data.selected_features.custom_feature_data.single.graph_data;
+      graphs.push(data);
+    } else if (feature_selection.method === "SelectKBest") {
+      let data = Data.selected_features;
+
+      tables.push({
+        heading: "Selected Features and Scores: ",
+        table: data.selected_features,
+      });
+      if (data.graph_data && data.graph_data.bar_plot) {
+        graphs.push(JSON.parse(data.graph_data.bar_plot));
+      }
+      if (data.graph_data && data.graph_data.scatter_plot) {
+        graphs.push(JSON.parse(data.graph_data.scatter_plot));
+      }
+    } else if (feature_selection.method === "Mutual Information") {
+      let data = Data.selected_features;
+      tables.push({
+        heading: "Selected Features and Scores:",
+        table: data.selected_features,
+      });
+      if (data.graph_data && data.graph_data.bar_plot) {
+        graphs.push(JSON.parse(data.graph_data.bar_plot));
+      }
+      if (data.graph_data && data.graph_data.scatter_plot) {
+        graphs.push(JSON.parse(data.graph_data.scatter_plot));
+      }
+    }
+    // console.log({ tables, graphs });
+
+    const tempNodes = rflow.getNodes().map((val) => {
+      if (val.id === params.target)
+        return {
+          ...val,
+          data: {
+            method: "Feature Selection",
+            tables,
+            graphs,
+          },
+        };
+      return val;
+    });
+    rflow.setNodes(tempNodes);
+
     return true;
   } catch (error) {
     raiseErrorToast(rflow, params, error.message);
