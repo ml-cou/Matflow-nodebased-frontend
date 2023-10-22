@@ -1,4 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  Panel as Pan,
+  PanelGroup,
+  PanelResizeHandle,
+} from "react-resizable-panels";
 import { toast } from "react-toastify";
 import uuid from "react-uuid";
 import ReactFlow, {
@@ -25,6 +31,7 @@ import DuplicateNode from "../NodeBased/CustomNodes/DuplicateNode/DuplicateNode"
 import EDANode from "../NodeBased/CustomNodes/EDANode/EDANode";
 import EncodingNode from "../NodeBased/CustomNodes/EncodingNode/EncodingNode";
 import FeatureSelectionNode from "../NodeBased/CustomNodes/FeatureSelectionNode/FeatureSelectionNode";
+import FileNode from "../NodeBased/CustomNodes/FileNode/FileNode";
 import GroupNode from "../NodeBased/CustomNodes/GroupNode/GroupNode";
 import HyperParameterNode from "../NodeBased/CustomNodes/HyperparameterNode/HyperParameterNode";
 import ImputationNode from "../NodeBased/CustomNodes/ImputationNode/ImputationNode";
@@ -44,7 +51,10 @@ import TextNode from "../NodeBased/CustomNodes/TextNode/TextNode";
 import TimeSeriesNode from "../NodeBased/CustomNodes/TimeSeiresNode/TimeSeriesNode";
 import UploadFile from "../NodeBased/CustomNodes/UploadFile/UploadFile";
 import Controls from "../NodeBased/components/Controls/Controls";
+import EditorTopbar from "../NodeBased/components/EditorTopbar/EditorTopbar";
+import OutputPanel from "../NodeBased/components/OutputPanel/OutputPanel";
 import Sidebar from "../NodeBased/components/Sidebar/Sidebar";
+import { setNodeType, setRightSidebarData } from "../Slices/SideBarSlice";
 import {
   handleAddModify,
   handleAlterFieldName,
@@ -115,6 +125,7 @@ const nodeTypes = {
   "Model Evaluation": ModelEvaluationNode,
   "Model Prediction": ModelPredictionNode,
   "Feature Selection": FeatureSelectionNode,
+  File: FileNode,
 };
 
 const initialNodes = [
@@ -135,6 +146,18 @@ function EditorPage() {
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   const rflow = useReactFlow();
   const edgeList = useEdges();
+  const showRightSidebar = useSelector(
+    (state) => state.sideBar.showRightSideBar
+  );
+  const [sidebarWidth, setSidebarWidth] = useState(0);
+  const ref = useRef();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (ref.current && !showRightSidebar) {
+      ref.current.collapse();
+    }
+  }, [showRightSidebar]);
 
   const onDragOver = useCallback((event) => {
     event.preventDefault();
@@ -175,24 +198,25 @@ function EditorPage() {
   const onEdgesDelete = (e) => {
     const sourceNode = rflow.getNode(e[0].source);
     const targetNode = rflow.getNode(e[0].target);
-
-    if (
-      sourceNode.type === "Upload File" &&
-      targetNode.type === "Merge Dataset"
-    ) {
-      const tempNodes = rflow.getNodes().map((val) => {
-        if (val.id === targetNode.id) {
-          delete val.data[sourceNode.data.file_name];
-          if (val.data.merge && Object.keys(val.data).length <= 2) {
-            delete val.data.merge;
-          }
-        }
-        return val;
-      });
-      console.log(tempNodes);
-      rflow.setNodes(tempNodes);
-      return;
-    }
+    dispatch(setRightSidebarData(undefined));
+    dispatch(setNodeType(""));
+    // if (
+    //   sourceNode.type === "Upload File" &&
+    //   targetNode.type === "Merge Dataset"
+    // ) {
+    //   const tempNodes = rflow.getNodes().map((val) => {
+    //     if (val.id === targetNode.id) {
+    //       delete val.data[sourceNode.data.file_name];
+    //       if (val.data.merge && Object.keys(val.data).length <= 2) {
+    //         delete val.data.merge;
+    //       }
+    //     }
+    //     return val;
+    //   });
+    //   console.log(tempNodes);
+    //   rflow.setNodes(tempNodes);
+    //   return;
+    // }
 
     const tempNodes = rflow.getNodes().map((val) => {
       if (val.id === e[0].target) return { ...val, data: undefined };
@@ -221,13 +245,6 @@ function EditorPage() {
     onRestore();
   }, []);
 
-  const onSave = useCallback(() => {
-    if (reactFlowInstance) {
-      const flow = reactFlowInstance.toObject();
-      localStorage.setItem("flow", JSON.stringify(flow));
-    }
-  }, [reactFlowInstance]);
-
   const onConnect = useCallback(
     async (params) => {
       const source = rflow.getNode(params.source);
@@ -235,17 +252,6 @@ function EditorPage() {
       const typeSource = rflow.getNode(params.source).type;
       const typeTarget = rflow.getNode(params.target).type;
       let ok = false;
-
-      setEdges((eds) => {
-        const temp = {
-          ...params,
-          style: { strokeWidth: 1, stroke: "grey" },
-          animated: true,
-        };
-        const allEdges = addEdge(temp, eds);
-        console.log(allEdges)
-        return allEdges;
-      });
 
       if (typeTarget !== "Merge Dataset" && typeTarget !== "Append Dataset") {
         const temp = edgeList.filter((val) => val.target === params.target);
@@ -264,8 +270,19 @@ function EditorPage() {
         }
       }
 
+      setEdges((eds) => {
+        const temp = {
+          ...params,
+          style: { strokeWidth: 1, stroke: "grey" },
+          animated: true,
+        };
+        const allEdges = addEdge(temp, eds);
+        // console.log(allEdges)
+        return allEdges;
+      });
+
       if (
-        typeSource === "Upload File" &&
+        (typeSource === "Upload File" || typeSource === "File") &&
         (typeTarget === "Table" ||
           typeTarget === "EDA" ||
           typeTarget === "ReverseML" ||
@@ -288,7 +305,9 @@ function EditorPage() {
       }
 
       if (
-        (typeSource === "EDA" || typeSource === "Upload File") &&
+        (typeSource === "EDA" ||
+          typeSource === "Upload File" ||
+          typeSource === "File") &&
         typeTarget === "Graph"
       ) {
         // console.log(rflow);
@@ -300,7 +319,7 @@ function EditorPage() {
       }
 
       if (
-        typeSource === "Upload File" &&
+        (typeSource === "Upload File" || typeSource === "File") &&
         typeTarget === "Time Series Analysis"
       ) {
         ok = await isItTimeSeriesFile(rflow, params);
@@ -311,37 +330,37 @@ function EditorPage() {
       }
 
       if (
-        typeSource === "Upload File" &&
+        (typeSource === "Upload File" || typeSource === "File") &&
         (typeTarget === "Merge Dataset" || typeTarget === "Append Dataset")
       ) {
         ok = await handleFileForMergeDataset(rflow, params);
       }
 
-      if (typeSource === "Merge Dataset" && typeTarget === "Upload File") {
+      if (typeSource === "Merge Dataset" && typeTarget === "File") {
         ok = await handleMergeDataset(rflow, params);
       }
 
-      if (typeSource === "Add/Modify" && typeTarget === "Upload File") {
+      if (typeSource === "Add/Modify" && typeTarget === "File") {
         ok = await handleAddModify(rflow, params);
       }
 
-      if (typeSource === "Change Dtype" && typeTarget === "Upload File") {
+      if (typeSource === "Change Dtype" && typeTarget === "File") {
         ok = await handleChangeDtype(rflow, params);
       }
 
-      if (typeSource === "Alter Field Name" && typeTarget === "Upload File") {
+      if (typeSource === "Alter Field Name" && typeTarget === "File") {
         ok = await handleAlterFieldName(rflow, params);
       }
 
-      if (typeSource === "Drop Column/Rows" && typeTarget === "Upload File") {
+      if (typeSource === "Drop Column/Rows" && typeTarget === "File") {
         ok = await handleDropRowColumn(rflow, params);
       }
 
-      if (typeSource === "Scaling" && typeTarget === "Upload File") {
+      if (typeSource === "Scaling" && typeTarget === "File") {
         ok = await handleScaling(rflow, params);
       }
 
-      if (typeSource === "Encoding" && typeTarget === "Upload File") {
+      if (typeSource === "Encoding" && typeTarget === "File") {
         ok = await handleEncoding(rflow, params);
       }
 
@@ -353,7 +372,7 @@ function EditorPage() {
         ok = await handleCluster(rflow, params, "graph");
       }
 
-      if (typeSource === "Append Dataset" && typeTarget === "Upload File") {
+      if (typeSource === "Append Dataset" && typeTarget === "File") {
         ok = await handleAppendDataset(rflow, params);
       }
 
@@ -381,11 +400,14 @@ function EditorPage() {
         ok = await handleDatasetDuplicate(rflow, params);
       }
 
-      if (typeSource === "Upload File" && typeTarget === "Imputation") {
+      if (
+        (typeSource === "Upload File" || typeSource === "File") &&
+        typeTarget === "Imputation"
+      ) {
         ok = await handleImputationInit(rflow, params);
       }
 
-      if (typeSource === "Imputation" && typeTarget === "Upload File") {
+      if (typeSource === "Imputation" && typeTarget === "File") {
         ok = await handleImputation(rflow, params);
       }
 
@@ -404,7 +426,7 @@ function EditorPage() {
         ok = await handleTestTrainDataset(rflow, params);
       }
 
-      if (typeSource === "Test-Train Dataset" && typeTarget === "Upload File") {
+      if (typeSource === "Test-Train Dataset" && typeTarget === "File") {
         ok = await handleTestTrainPrint(rflow, params);
       }
 
@@ -465,77 +487,99 @@ function EditorPage() {
         ok = await handleFeatureSelection(rflow, params);
       }
 
-      
+      if (!ok) return;
 
-      let tempEdge = rflow.getEdges().map((val) => {
-        if (val.source === source.id && val.target === target.id) {
-          return {
-            ...val,
-            animated: false,
-            markerEnd: {
-              type: MarkerType.ArrowClosed,
-              width: 15,
-              height: 15,
-              color: "#000",
-            },
-            style: { strokeWidth: 2, stroke: "#000" },
-          };
+      setTimeout(() => {
+        let tempEdge = rflow.getEdges().map((val) => {
+          if (val.source === source.id && val.target === target.id) {
+            return {
+              ...val,
+              animated: false,
+              markerEnd: {
+                type: MarkerType.ArrowClosed,
+                width: 15,
+                height: 15,
+                color: "#000",
+              },
+              style: { strokeWidth: 2, stroke: "#000" },
+            };
+          }
+          return val;
+        });
+
+        if (!ok) {
+          tempEdge = tempEdge.filter(
+            (val) => !(val.source === source.id && val.target === target.id)
+          );
         }
-        return val;
-      });
 
-      if (!ok) {
-        tempEdge = tempEdge.filter(
-          (val) => !(val.source === source.id && val.target === target.id)
-        );
-      }
-
-      rflow.setEdges(tempEdge);
+        rflow.setEdges(tempEdge);
+      }, 0);
     },
 
     [nodes, rflow, edgeList]
   );
 
   return (
-    <div className=" flex flex-col md:flex-row flex-1 h-screen bg-slate-200">
-      <Sidebar />
-      <div
-        className="reactflow-wrapper h-full flex-grow"
-        ref={reactFlowWrapper}
-      >
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onInit={setReactFlowInstance}
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-          nodeTypes={nodeTypes}
-          // fitView
-          onNodesDelete={onNodesDelete}
-          onEdgesDelete={onEdgesDelete}
-        >
-          <Background
-            color="grey"
-            variant={"dots"}
-            gap={15}
-            className="bg-slate-100"
-          />
-          <Panel position="top-right">
+    <div className="flex  flex-col md:flex-row flex-1 h-screen bg-slate-200">
+      <Sidebar onValueChange={setSidebarWidth} />
+      <EditorTopbar reactFlowInstance={reactFlowInstance} />
+
+      <PanelGroup autoSaveId="editor" direction="horizontal">
+        <Pan defaultSize={75} minSize={50}>
+          <div
+            className="reactflow-wrapper h-full flex-grow"
+            ref={reactFlowWrapper}
+          >
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onInit={setReactFlowInstance}
+              onDrop={onDrop}
+              onDragOver={onDragOver}
+              nodeTypes={nodeTypes}
+              // fitView
+              onNodesDelete={onNodesDelete}
+              onEdgesDelete={onEdgesDelete}
+              // className="relative"
+            >
+              <Background
+                color="grey"
+                variant={"dots"}
+                gap={15}
+                className="bg-slate-100"
+              />
+              {/* <Panel position="top-right">
             <button
               className="bg-white p-3 px-6 tracking-wider font-medium shadow-lg rounded border-2 border-black"
               onClick={onSave}
             >
               Save
             </button>
-          </Panel>
-          <Panel position="top-left">
-            <Controls />
-          </Panel>
-        </ReactFlow>
-      </div>
+          </Panel> */}
+              <Panel position="bottom-left">
+                <Controls />
+              </Panel>
+            </ReactFlow>
+          </div>
+        </Pan>
+        <PanelResizeHandle
+          style={{ zIndex: "70", width: "4px" }}
+          className="grid place-items-center hover:bg-gray-400 bg-[whitesmoke]"
+        ></PanelResizeHandle>
+        <Pan
+          collapsedSize={0}
+          collapsible={true}
+          defaultSize={25}
+          ref={ref}
+          minSize={5}
+        >
+          <OutputPanel />
+        </Pan>
+      </PanelGroup>
     </div>
   );
 }

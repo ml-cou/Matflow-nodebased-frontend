@@ -49,7 +49,7 @@ function UpdateModelDeploymentNode({ visible, setVisible, nodeId, csvData }) {
   };
 
   const handleSave = () => {
-    let table = nodeDetails.data.table;
+    let table = nodeDetails.data.table_init;
     if (select_columns === "custom") {
       table = nodeDetails.data.table.filter((val) =>
         filter_col_name.includes(val["Name of Features"])
