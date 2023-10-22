@@ -11,6 +11,8 @@ function AgGridComponent({
 }) {
   const gridRef = useRef();
 
+  
+
   const defaultColDef = useMemo(() => {
     return {
       valueFormatter: (data) => {

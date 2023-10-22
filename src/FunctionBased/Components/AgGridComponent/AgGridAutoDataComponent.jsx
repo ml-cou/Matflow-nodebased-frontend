@@ -1,5 +1,5 @@
 import { AgGridReact } from "ag-grid-react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
 function AgGridAutoDataComponent({
   rowData,
@@ -12,7 +12,7 @@ function AgGridAutoDataComponent({
   const gridRef = useRef();
 
   const columnDefs =
-    rowData.length > 0
+    rowData && rowData.length > 0
       ? Object.keys(rowData[0]).map((key) => ({
           headerName: key,
           field: key,

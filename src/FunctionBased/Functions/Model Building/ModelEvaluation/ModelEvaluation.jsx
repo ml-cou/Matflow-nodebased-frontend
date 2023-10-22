@@ -91,6 +91,7 @@ function ModelEvaluation() {
         });
         const data = await res.json();
         setGraphData(JSON.parse(data));
+        console.log(JSON.parse(data));
       } else {
         const columnSet = new Set(selectedColumn);
         let tempDef = [];
