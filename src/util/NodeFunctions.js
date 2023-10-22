@@ -1446,6 +1446,7 @@ export const handleModelDeploymentInit = async (rflow, params) => {
           data: {
             ...val.data,
             table: data.dataframe,
+            table_init: data.dataframe,
             result_init: data.result,
             result: data.result,
             model,
