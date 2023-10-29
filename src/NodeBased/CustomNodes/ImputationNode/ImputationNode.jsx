@@ -17,6 +17,12 @@ function ImputationNode({ id, data }) {
   const activeID = useSelector((state) => state.sideBar.active_id);
 
   useEffect(() => {
+    if (activeID === id) {
+      dispatch(setRightSidebarData(data));
+    }
+  }, [activeID, id, data]);
+
+  useEffect(() => {
     (async function () {
       const temp = rflow
         .getEdges()

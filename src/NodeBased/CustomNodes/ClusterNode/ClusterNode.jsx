@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Handle, Position, useReactFlow } from "reactflow";
-import { setActiveID, setNodeType, setRightSidebarData } from "../../../Slices/SideBarSlice";
+import {
+  setActiveID,
+  setNodeType,
+  setRightSidebarData,
+} from "../../../Slices/SideBarSlice";
 import { handleCluster } from "../../../util/NodeFunctions";
 import UpdateClusterNode from "../../UpdateNodes/UpdateClusterNode/UpdateClusterNode";
 
@@ -12,6 +16,12 @@ function ClusterNode({ id, data }) {
   const type = rflow.getNode(id).type;
   const dispatch = useDispatch();
   const activeID = useSelector((state) => state.sideBar.active_id);
+
+  useEffect(() => {
+    if (activeID === id) {
+      dispatch(setRightSidebarData(data));
+    }
+  }, [activeID, id, data]);
 
   useEffect(() => {
     (async function () {

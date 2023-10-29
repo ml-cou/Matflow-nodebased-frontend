@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { AiOutlineFile } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import { Handle, Position, useReactFlow } from "reactflow";
@@ -13,6 +13,12 @@ function FileNode({ id, data }) {
   const type = rflow.getNode(id).type;
   const dispatch = useDispatch();
   const activeID = useSelector((state) => state.sideBar.active_id);
+
+  useEffect(() => {
+    if (activeID === id) {
+      dispatch(setRightSidebarData(data));
+    }
+  }, [activeID, id, data]);
 
   return (
     <div

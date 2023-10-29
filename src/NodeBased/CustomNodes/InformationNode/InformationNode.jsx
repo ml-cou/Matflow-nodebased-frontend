@@ -1,5 +1,5 @@
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import React from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Handle, Position, useReactFlow } from "reactflow";
 import {
@@ -13,6 +13,12 @@ function InformationNode({ id, data }) {
   const type = rflow.getNode(id).type;
   const dispatch = useDispatch();
   const activeID = useSelector((state) => state.sideBar.active_id);
+
+  useEffect(() => {
+    if (activeID === id) {
+      dispatch(setRightSidebarData(data));
+    }
+  }, [activeID, id, data]);
 
   return (
     <div

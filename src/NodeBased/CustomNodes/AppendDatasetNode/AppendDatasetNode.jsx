@@ -7,7 +7,11 @@ import React, { useEffect, useState } from "react";
 import { GrTableAdd } from "react-icons/gr";
 import { useDispatch, useSelector } from "react-redux";
 import { Handle, Position, useReactFlow } from "reactflow";
-import { setActiveID, setNodeType, setRightSidebarData } from "../../../Slices/SideBarSlice";
+import {
+  setActiveID,
+  setNodeType,
+  setRightSidebarData,
+} from "../../../Slices/SideBarSlice";
 import { handleAppendDataset } from "../../../util/NodeFunctions";
 
 function AppendDatasetNode({ id, data }) {
@@ -20,6 +24,12 @@ function AppendDatasetNode({ id, data }) {
   const type = nodeDetails.type;
   const dispatch = useDispatch();
   const activeID = useSelector((state) => state.sideBar.active_id);
+
+  useEffect(() => {
+    if (activeID === id) {
+      dispatch(setRightSidebarData(data));
+    }
+  }, [activeID, id, data]);
 
   useEffect(() => {
     (async function () {

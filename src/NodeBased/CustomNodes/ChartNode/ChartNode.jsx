@@ -2,7 +2,7 @@ import AutoGraphOutlinedIcon from "@mui/icons-material/AutoGraphOutlined";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import { Modal } from "@nextui-org/react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 import { useDispatch, useSelector } from "react-redux";
 import { Handle, Position, useReactFlow } from "reactflow";
@@ -21,6 +21,12 @@ function ChartNode({ id, data }) {
   const type = rflow.getNode(id).type;
   const dispatch = useDispatch();
   const activeID = useSelector((state) => state.sideBar.active_id);
+
+  useEffect(() => {
+    if (activeID === id) {
+      dispatch(setRightSidebarData(JSON.stringify(data)));
+    }
+  }, [activeID, id, data]);
 
   const closeHandler = () => {
     setVisible(false);

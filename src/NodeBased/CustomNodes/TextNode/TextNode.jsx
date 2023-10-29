@@ -24,6 +24,12 @@ function TextNode({ id, data }) {
   const activeID = useSelector((state) => state.sideBar.active_id);
 
   useEffect(() => {
+    if (activeID === id) {
+      dispatch(setRightSidebarData(data));
+    }
+  }, [activeID, id, data]);
+
+  useEffect(() => {
     if (data && data.type === "Classification Report") {
       const temp = data.result.replaceAll("\n", "<br />");
       setResult(temp);
