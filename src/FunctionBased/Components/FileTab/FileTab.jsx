@@ -2,14 +2,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { AiFillCloseCircle } from "react-icons/ai";
 import { BsFillPlayFill } from "react-icons/bs";
 import { useDispatch, useSelector } from "react-redux";
+import { setActiveFunction } from "../../../Slices/SideBarSlice";
+import { setActiveFile, setReRender } from "../../../Slices/UploadedFileSlice";
 import {
   deleteIndexedDB,
   parseCsv,
   parseExcel,
   storeDataInIndexedDB,
 } from "../../../util/indexDB";
-import { setActiveFunction } from "../../../Slices/SideBarSlice";
-import { setActiveFile, setReRender } from "../../../Slices/UploadedFileSlice";
 
 function FileTab() {
   const [files, setFiles] = useState([]);
@@ -43,7 +43,6 @@ function FileTab() {
     e.preventDefault();
     e.stopPropagation();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      
       const file = e.dataTransfer.files[0];
       setUploadedFile(file);
       let parsedData;
@@ -52,9 +51,8 @@ function FileTab() {
         parsedData = await parseCsv(file);
       } else {
         parsedData = await parseExcel(file);
-        
       }
-      
+
       storeDataInIndexedDB(parsedData, file.name);
     }
   };
@@ -70,7 +68,7 @@ function FileTab() {
       dispatch(setActiveFunction(""));
       localStorage.removeItem("activeFunction");
     }
-    
+
     await deleteIndexedDB(name);
   };
 
@@ -80,7 +78,7 @@ function FileTab() {
     dispatch(setActiveFile(active));
     localStorage.setItem("activeFile", JSON.stringify(active));
     dispatch(setActiveFunction(localStorage.getItem("activeFunction")));
-    
+
     dispatch(setReRender(!render));
   };
 
@@ -178,12 +176,10 @@ function FileTab() {
               Upload a File
             </p>
 
-            {uploadedFile ? (
+            {uploadedFile && (
               <p className="font-bold text-gray-100 tracking-wide text-md">
                 {uploadedFile.name}
               </p>
-            ) : (
-              <p className="text-xs font-light">Limit 200MB per file</p>
             )}
           </label>
           <input
